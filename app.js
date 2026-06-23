@@ -170,16 +170,18 @@
   function canCheck() { var ex = curEx(); if (ex.type === 'mcq') return state.selected !== null; if (ex.type === 'dnd') return state.placed.length === ex.answer.length; if (ex.type === 'listen') return state.revealed; return false; }
 
   /* ----------------------------- ACTIONS ----------------------------- */
-  function signInGoogle() {
-    FB = window.__ATC_FIREBASE__;
-    if (!FB) { toast('Firebase לא נטען עדיין, נסה שוב'); return; }
-    // הצג loading קטן
-    root.innerHTML = screenLoading('מתחבר עם Google...');
-    FB.googleSignIn().then(function(user) {
-      if (!user) { set({ screen: 'landing' }); toast('ההתחברות בוטלה'); }
-      // onAuthStateChanged יטפל בהמשך
-    });
-  }
+function signInGoogle() {
+  // TODO: להחליף בחיבור Firebase אמיתי כשיהיה מוכן
+  // FB = window.__ATC_FIREBASE__;
+  // if (!FB) { toast('Firebase לא נטען עדיין, נסה שוב'); return; }
+  // root.innerHTML = screenLoading('מתחבר עם Google...');
+  // FB.googleSignIn().then(function(user) {
+  //   if (!user) { set({ screen: 'landing' }); toast('ההתחברות בוטלה'); }
+  // });
+
+  // כניסה זמנית לבדיקה — למחוק כשמחברים Firebase
+  set({ loggedIn: true, userName: 'טייס', userPhoto: '', userUid: 'test', screen: 'welcome' });
+}
 
   function signOut() {
     cancelSpeech();
