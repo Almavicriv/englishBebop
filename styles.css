@@ -1,0 +1,131 @@
+/* ===== ATC English Trainer — stylesheet ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Rubik', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* hide scrollbars in scroll regions */
+.atc-scroll::-webkit-scrollbar { width: 0; height: 0; }
+.atc-scroll { scrollbar-width: none; }
+
+/* phone-mockup stage (desktop) */
+.omstage {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+  background: radial-gradient(120% 90% at 50% 0%, #1d4264 0%, #0d2034 58%, #08161f 100%);
+  font-family: 'Rubik', sans-serif;
+}
+.omframe {
+  width: 392px;
+  height: 846px;
+  max-height: 100%;
+  background: #EEF3F8;
+  border-radius: 48px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 50px 110px rgba(0,0,0,.55), 0 0 0 12px #0c1622, 0 0 0 14px #2a3441;
+}
+
+/* full-screen on real phones / short viewports */
+@media (max-width: 640px), (max-height: 900px) {
+  .omstage { padding: 0; }
+  .omframe {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* status bar */
+.atc-status {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px 0 24px;
+  font-weight: 600;
+  font-size: 15px;
+  z-index: 40;
+}
+
+button { font-family: 'Rubik', sans-serif; }
+
+/* ===== animations ===== */
+@keyframes atcPulse {
+  0% { transform: scale(1); opacity: .55; }
+  70% { transform: scale(1.7); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes atcBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+@keyframes atcSheet {
+  0% { transform: translateY(101%); }
+  100% { transform: translateY(0); }
+}
+@keyframes atcToast {
+  0% { transform: translate(-50%, 30px); opacity: 0; }
+  12%, 88% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(-50%, 30px); opacity: 0; }
+}
+@keyframes atcWave {
+  0%, 100% { transform: scaleY(.4); }
+  50% { transform: scaleY(1); }
+}
+@keyframes atcPop {
+  0% { transform: scale(.6); opacity: 0; }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes atcFloat {
+  0%, 100% { transform: translateY(0) rotate(-7deg); }
+  50% { transform: translateY(-16px) rotate(-7deg); }
+}
+@keyframes atcCloud {
+  from { transform: translateX(0); }
+  to { transform: translateX(26px); }
+}
+@keyframes atcTalkBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(-1.4deg); }
+}
+@keyframes atcRunLight {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
+}
+@keyframes atcSelLift {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-8px) scale(1.04); }
+}
+@keyframes towerDrop {
+  0% { transform: translateY(-30px) scale(.82); opacity: 0; }
+  60% { transform: translateY(5px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes towerBeacon {
+  0%, 100% { opacity: .35; box-shadow: 0 0 6px 1px rgba(229,72,77,.4); }
+  50% { opacity: 1; box-shadow: 0 0 12px 4px rgba(229,72,77,.85); }
+}
+@keyframes towerSpark {
+  0% { transform: translateY(0) scale(0); opacity: 0; }
+  30% { opacity: 1; transform: translateY(-14px) scale(1); }
+  100% { transform: translateY(-34px) scale(.4); opacity: 0; }
+}
+@keyframes atcWiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
