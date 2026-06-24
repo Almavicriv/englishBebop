@@ -55,7 +55,7 @@
         var base = data || {};
         set({
           loggedIn: true,
-          userName: user.displayName || 'טייס',
+          userName: user.displayName || 'בקר או פקח',
           userPhoto: user.photoURL || '',
           userUid: user.uid,
           role: base.role || null,
@@ -236,7 +236,7 @@
     // });
 
     // כניסה זמנית לבדיקה — למחוק כשמחברים Firebase
-    set({ loggedIn: true, userName: 'טייס', userPhoto: '', userUid: 'test', screen: 'welcome' });
+    set({ loggedIn: true, userName: 'בקר או פקח', userPhoto: '', userUid: 'test', screen: 'welcome' });
   }
 
   /**
@@ -487,9 +487,6 @@
    *  5. קריאה לפונקציית הרינדור הספציפית של המסך הפעיל בלבד (לא כל המסכים)
    */
   function render() {
-    // status bar tint
-    var statusBar = document.getElementById('statusBar');
-    statusBar.classList.toggle('atc-status--light', darkScreens.indexOf(state.screen) >= 0);
 
     // show only the active screen
     var screens = root.querySelectorAll('.screen');
@@ -548,7 +545,7 @@
       img.src = 'assets/tower.png';
       img.className = 'welcome__tower';
     }
-    document.getElementById('welcomeName').textContent = state.userName || 'טייס';
+    document.getElementById('welcomeName').textContent = state.userName || 'בקר או פקח';
   }
 
   /**
@@ -863,7 +860,7 @@
       photoWrap.appendChild(fb);
     }
 
-    document.getElementById('profileName').textContent = state.userName || 'טייס';
+    document.getElementById('profileName').textContent = state.userName || 'חייל';
     document.getElementById('profileBadge').textContent = info.badge;
 
     var stats = [
