@@ -1,85 +1,438 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-  <title>אנגלית תעופתית — אימון פקחים ובקרים</title>
-  <meta name="description" content="אפליקציית אימון אנגלית מבצעית לפקחי ובקרי טיסה.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-    import { getFirestore, doc, getDoc, setDoc }
-      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-    // ============================================================
-    // 🔧 הכנס כאן את הפרטים שלך מ-Firebase Console
-    // ============================================================
-    const firebaseConfig = {
-      apiKey:            "REPLACE_API_KEY",
-      authDomain:        "REPLACE_AUTH_DOMAIN",
-      projectId:         "REPLACE_PROJECT_ID",
-      storageBucket:     "REPLACE_STORAGE_BUCKET",
-      messagingSenderId: "REPLACE_MESSAGING_SENDER_ID",
-      appId:             "REPLACE_APP_ID"
-    };
-    // ============================================================
-
-    const app      = initializeApp(firebaseConfig);
-    const auth     = getAuth(app);
-    const db       = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
-    /* --- שמירה ב-Firestore --- */
-    async function saveProgress(uid, data) {
-      try {
-        await setDoc(doc(db, 'users', uid), data, { merge: true });
-      } catch(e) { console.warn('saveProgress error', e); }
-    }
-
-    /* --- טעינה מ-Firestore --- */
-    async function loadProgress(uid) {
-      try {
-        const snap = await getDoc(doc(db, 'users', uid));
-        return snap.exists() ? snap.data() : null;
-      } catch(e) { return null; }
-    }
-
-    /* --- כניסה עם גוגל --- */
-    async function googleSignIn() {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        return result.user;
-      } catch(e) {
-        console.error('Google sign-in error', e);
-        return null;
-      }
-    }
-
-    /* --- יציאה --- */
-    async function firebaseSignOut() {
-      await signOut(auth);
-    }
-
-    /* --- חשיפה לאפליקציה הראשית --- */
-    window.__ATC_FIREBASE__ = { googleSignIn, firebaseSignOut, saveProgress, loadProgress, onAuthStateChanged, auth };
-
-    /* --- מאזין לשינוי מצב כניסה --- */
-    onAuthStateChanged(auth, (user) => {
-      if (window.__ATC_AUTH_CALLBACK__) window.__ATC_AUTH_CALLBACK__(user);
-    });
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>אנגלית תעופתית — אימון פקחים ובקרים</title>
+<meta name="description" content="אפליקציית אימון אנגלית מבצעית לפקחי ובקרי טיסה.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="omstage">
-    <div id="app" dir="rtl" class="omframe"></div>
+<div class="omstage">
+  <div id="app" dir="rtl" class="omframe">
+
+    <!-- ============ STATUS BAR ============ -->
+    <div class="atc-status" id="statusBar">
+      <span class="atc-status__clock">7:47</span>
+      <span class="atc-status__sig">5G&nbsp;&nbsp;&#9646;&#9646;&#9646;&#9646;&#9744;</span>
+    </div>
+
+    <!-- ============ SCREEN: loading ============ -->
+    <section class="screen screen--loading" data-screen="loading">
+      <img src="assets/tower.png" alt="" class="loading__tower">
+      <div class="loading__msg" id="loadingMsg">טוען...</div>
+      <div class="loading__dots">
+        <span class="loading__dot"></span>
+        <span class="loading__dot"></span>
+        <span class="loading__dot"></span>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: landing ============ -->
+    <section class="screen screen--landing" data-screen="landing">
+      <div class="landing__stars"></div>
+      <div class="landing__glow"></div>
+      <img src="assets/tower.png" alt="" class="landing__tower-bg">
+      <img src="assets/airplane.png" alt="" class="landing__plane">
+      <div class="landing__runway-wrap">
+        <div class="landing__runway">
+          <div class="landing__runway-center"></div>
+          <div class="landing__runway-light landing__runway-light--l"></div>
+          <div class="landing__runway-light landing__runway-light--r"></div>
+        </div>
+      </div>
+      <div class="landing__hero">
+        <div class="landing__badge">✈️ AVIATION ENGLISH</div>
+        <h1 class="landing__title">בואו ללמוד<br>אנגלית תעופתית</h1>
+        <p class="landing__sub">פרזיולוגיית רדיו לפקחים ובקרים — שלב אחר שלב, עם תרגול קולי.</p>
+      </div>
+      <div class="landing__sheet">
+        <button class="btn-google" data-act="google">
+          <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.3 4.5 29.4 2.5 24 2.5 12.1 2.5 2.5 12.1 2.5 24S12.1 45.5 24 45.5 45.5 35.9 45.5 24c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M5 14.7l6.6 4.8C13.4 15.1 18.3 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.3 4.5 29.4 2.5 24 2.5 16.3 2.5 9.7 6.8 5 14.7z"/><path fill="#4CAF50" d="M24 45.5c5.3 0 10.1-2 13.7-5.3l-6.3-5.3c-2 1.5-4.6 2.4-7.4 2.4-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.6 41.1 16.2 45.5 24 45.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.4l6.3 5.3c-.4.4 6.9-5 6.9-14.7 0-1.2-.1-2.4-.4-3.5z"/></svg>
+          <span>התחבר/י עם Google</span>
+        </button>
+        <div class="landing__terms">בהמשך הינך מאשר/ת את תנאי השימוש ומדיניות הפרטיות</div>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: welcome ============ -->
+    <section class="screen screen--welcome" data-screen="welcome">
+      <div class="welcome__ring welcome__ring--a"></div>
+      <div class="welcome__ring welcome__ring--b"></div>
+      <img id="welcomePhoto" src="assets/tower.png" alt="" class="welcome__tower">
+      <h1 class="welcome__title">ברוך הבא, <span id="welcomeName">טייס</span>!</h1>
+      <p class="welcome__sub">מוכן/ה להמריא? נתחיל בבחירת הדמות ובניית מסלול האימון שלך.</p>
+      <button class="welcome__cta" data-act="start">בחירת דמות ►</button>
+    </section>
+
+    <!-- ============ SCREEN: role ============ -->
+    <section class="screen screen--role" data-screen="role">
+      <div class="role__head">
+        <h1 class="role__title">בחר/י את הדמות שלך</h1>
+        <p class="role__sub">הקש/י על דמות — לכל תפקיד מסלול והתקדמות נפרדים</p>
+      </div>
+      <div class="role__cards" id="roleCards">
+        <!-- populated by JS from template#tplRoleCard -->
+      </div>
+      <div class="role__confirm-wrap" id="roleConfirmWrap"></div>
+    </section>
+
+    <!-- ============ SCREEN: home ============ -->
+    <section class="screen screen--home" data-screen="home">
+      <div class="home__header">
+        <div class="home__heading">מסלול האימון</div>
+        <div class="home__floors-chip"><span>🏗️</span><span id="homeFloorsCount">0/10</span></div>
+      </div>
+      <div class="atc-scroll home__scroll">
+        <div class="tower-card">
+          <div class="tower-card__visual" id="towerCardVisual"></div>
+          <div class="tower-card__info">
+            <div class="tower-card__kicker" id="towerCardKicker">שלב 1 מתוך 10</div>
+            <div class="tower-card__title" id="towerCardTitle">מספרים ואיות</div>
+            <div class="tower-card__meta" id="towerCardMeta">המגדל שלך · 0/10 קומות</div>
+            <div class="tower-card__bar"><div class="tower-card__bar-fill" id="towerCardBarFill"></div></div>
+          </div>
+        </div>
+        <div class="home__path" id="homePath">
+          <img id="homeDecoA" src="assets/ctrl-hq.png" alt="" class="home__deco home__deco--a">
+          <img id="homeDecoB" src="assets/pilot-salute-hq.png" alt="" class="home__deco home__deco--b">
+          <div class="home__nodes" id="homeNodes">
+            <!-- populated by JS from template#tplStageNode -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: dictionary ============ -->
+    <section class="screen screen--dict" data-screen="dictionary">
+      <div class="dict__head">
+        <h1 class="dict__title">מילון פרזיולוגיה 📚</h1>
+        <div class="dict__search">
+          <span class="dict__search-icon">🔍</span>
+          <input id="dictInput" class="dict__search-input" placeholder="חיפוש...">
+        </div>
+        <div class="atc-scroll dict__chips" id="dictChips">
+          <!-- populated by JS from template#tplChip -->
+        </div>
+      </div>
+      <div class="atc-scroll dict__body" id="dictBody">
+        <!-- populated by JS: numbers block, read-scale block, category sections -->
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: practice (hub) ============ -->
+    <section class="screen screen--practice" data-screen="practice">
+
+      <div class="prac-hub" id="pracHub">
+        <div class="prac-hub__head">
+          <div>
+            <h1 class="prac-hub__title">מרכז התרגול 🎮</h1>
+            <div class="prac-hub__sub">בחר/י מיני-משחק וצבור/י XP</div>
+          </div>
+          <div class="prac-hub__streak"><span>🔥</span><span id="pracStreak">0</span></div>
+        </div>
+        <div class="atc-scroll prac-hub__scroll">
+          <div class="prac-hub__grid" id="pracGamesGrid">
+            <!-- populated by JS from template#tplGameCard -->
+          </div>
+          <div class="prac-hub__daily">
+            <div class="prac-hub__daily-eyebrow">⭐ אתגר יומי</div>
+            <div class="prac-hub__daily-title">ענה נכון על 5 בקשות קשר ברצף</div>
+            <div class="prac-hub__daily-rewards">
+              <div class="prac-hub__daily-reward">+50 XP</div>
+              <div class="prac-hub__daily-reward">+5 💎</div>
+            </div>
+            <button class="prac-hub__daily-btn" data-act="openGame" data-a="radio">התחל משימה</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prac-radio" id="pracRadio" hidden>
+        <div class="prac-radio__confetti" id="pracConfetti"></div>
+        <div class="prac-radio__top">
+          <button class="prac-radio__close" data-act="pracBack">✕</button>
+          <div class="prac-radio__progress">
+            <div class="prac-radio__progress-row">
+              <span class="prac-radio__progress-label">משימת פיקוח</span>
+              <span class="prac-radio__progress-xp">+25 XP</span>
+            </div>
+            <div class="prac-radio__progress-bar"><div class="prac-radio__progress-fill"></div></div>
+          </div>
+          <div class="prac-radio__streak"><span>🔥</span><span id="pracRadioStreak">0</span></div>
+        </div>
+        <div class="atc-scroll prac-radio__scroll">
+          <div class="prac-radio__card">
+            <div class="prac-radio__scene">
+              <img src="assets/tower.png" alt="" class="prac-radio__scene-tower">
+              <img src="assets/airplane.png" alt="" class="prac-radio__scene-plane">
+            </div>
+            <div class="prac-radio__tag">📻 טייס יוצר קשר עם המגדל</div>
+            <div class="prac-radio__transmission">
+              <button class="prac-radio__play" data-act="speak" data-speak="Tower, request permission to land runway two six.">🔊</button>
+              <div class="prac-radio__transmission-text">"Tower, request permission to land runway 26."</div>
+            </div>
+            <div class="prac-radio__question">מהי התגובה הנכונה?</div>
+            <div class="prac-radio__opts" id="pracRadioOpts">
+              <!-- populated by JS from template#tplRadioOpt -->
+            </div>
+          </div>
+        </div>
+        <div class="prac-radio__footer" id="pracRadioFooter">
+          <!-- populated by JS: check button OR feedback block -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ SCREEN: profile ============ -->
+    <section class="screen screen--profile" data-screen="profile">
+      <div class="atc-scroll profile__scroll">
+        <div class="profile__hero">
+          <div class="profile__photo-wrap" id="profilePhotoWrap"></div>
+          <div class="profile__hero-info">
+            <div class="profile__name" id="profileName">טייס</div>
+            <div class="profile__badge" id="profileBadge">🎧 בקר טיסה</div>
+          </div>
+        </div>
+        <div class="profile__stats" id="profileStats">
+          <!-- populated by JS from template#tplStatCard -->
+        </div>
+        <div class="profile__section">
+          <div class="profile__section-title">הדמות שלי</div>
+          <div class="profile__role-toggles" id="profileRoleToggles">
+            <!-- populated by JS from template#tplRoleToggle -->
+          </div>
+        </div>
+        <div class="profile__section">
+          <div class="profile__section-title">הגדרות</div>
+          <div class="profile__settings">
+            <button class="profile__setting" data-act="toggleSound">
+              <span class="profile__setting-icon">🔊</span>
+              <span class="profile__setting-label">קריינות קולית</span>
+              <span class="switch" id="soundSwitch"><span class="switch__knob"></span></span>
+            </button>
+            <button class="profile__setting profile__setting--danger" data-act="signOut">
+              <span class="profile__setting-icon">🚪</span>
+              <span class="profile__setting-label">התנתקות</span>
+              <span class="profile__setting-chevron">‹</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: lesson ============ -->
+    <section class="screen screen--lesson" data-screen="lesson">
+      <div class="lesson__top">
+        <button class="lesson__close" data-act="closeLesson">✕</button>
+        <div class="lesson__progress"><div class="lesson__progress-fill" id="lessonProgressFill"></div></div>
+      </div>
+      <div class="atc-scroll lesson__body">
+        <div class="lesson__kicker" id="lessonKicker">שלב 1 · הגיית מספרים ואיות</div>
+        <div class="lesson__prompt-row">
+          <button class="lesson__char-btn" data-act="speak" id="lessonCharBtn">
+            <img id="lessonCharImg" src="assets/ctrl-hq.png" alt="" class="lesson__char-img">
+          </button>
+          <div class="lesson__bubble">
+            <div class="lesson__bubble-head">
+              <span class="lesson__bubble-icon">🔊</span>
+              <span class="lesson__bubble-role" id="lessonRoleLabel">בקר</span>
+              <span class="lesson__bubble-state" id="lessonSpeakState">· הקש/י לשמיעה</span>
+            </div>
+            <div class="lesson__bubble-text" id="lessonHeText"></div>
+          </div>
+        </div>
+        <div class="lesson__exercise" id="lessonExercise">
+          <!-- populated by JS depending on exercise type (mcq / dnd / listen) -->
+        </div>
+      </div>
+      <div class="lesson__footer" id="lessonFooter">
+        <!-- populated by JS: check button OR feedback sheet -->
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: complete ============ -->
+    <section class="screen screen--complete" data-screen="complete">
+      <div class="complete__glow"></div>
+      <div class="complete__sub" id="completeSub"></div>
+      <h1 class="complete__title" id="completeTitle"></h1>
+      <div class="complete__tower-wrap">
+        <div class="complete__sparks" id="completeSparks"></div>
+        <div class="complete__tower" id="completeTower"></div>
+      </div>
+      <div class="complete__msg" id="completeMsg"></div>
+      <div class="complete__stats" id="completeStats">
+        <!-- populated by JS from template#tplCompleteStat -->
+      </div>
+      <button class="complete__cta" data-act="goHome">המשך/י למסלול</button>
+    </section>
+
+    <!-- ============ NAV BAR ============ -->
+    <nav class="navbar" id="navbar">
+      <button class="navbar__btn" data-act="tab" data-a="home">
+        <svg width="25" height="25" viewBox="0 0 24 24"><path d="M12 3.2 3.6 10.4a1 1 0 0 0-.35.76V20a1 1 0 0 0 1 1h4.2v-5.3a1 1 0 0 1 1-1h5.1a1 1 0 0 1 1 1V21h4.2a1 1 0 0 0 1-1v-8.84a1 1 0 0 0-.35-.76Z"/></svg>
+        <span>בית</span>
+      </button>
+      <button class="navbar__btn" data-act="tab" data-a="practice">
+        <svg width="25" height="25" viewBox="0 0 24 24"><g><rect x="2.5" y="9.5" width="2.6" height="5" rx="1.1"/><rect x="5" y="7.7" width="2.8" height="8.6" rx="1.2"/><rect x="16.2" y="7.7" width="2.8" height="8.6" rx="1.2"/><rect x="18.9" y="9.5" width="2.6" height="5" rx="1.1"/><rect x="7" y="10.7" width="10" height="2.6" rx="1.3"/></g></svg>
+        <span>תרגול</span>
+      </button>
+      <button class="navbar__btn" data-act="tab" data-a="dict">
+        <svg width="25" height="25" viewBox="0 0 24 24"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5Z"/><path d="M12 6.5v12" stroke="#fff" stroke-width="1.3"/></svg>
+        <span>מילון</span>
+      </button>
+      <button class="navbar__btn" data-act="tab" data-a="profile">
+        <svg width="25" height="25" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1Z"/></svg>
+        <span>פרופיל</span>
+      </button>
+    </nav>
+
+    <!-- ============ TOAST ============ -->
+    <div class="toast" id="toast" hidden></div>
+
   </div>
-  <script src="app.js"></script>
+</div>
+
+<!-- =====================================================================
+     TEMPLATES — cloned by app.js for repeated/dynamic items
+     ===================================================================== -->
+
+<template id="tplRoleCard">
+  <button class="role-card" data-act="pickRole">
+    <div class="role-card__check">✓</div>
+    <div class="role-card__img-wrap"><img class="role-card__img" alt=""></div>
+    <div class="role-card__badge"></div>
+    <div class="role-card__en"></div>
+  </button>
+</template>
+
+<template id="tplStageNode">
+  <div class="stage-node">
+    <button class="stage-node__btn" data-act="startStage">
+      <div class="stage-node__circle-wrap">
+        <div class="stage-node__pulse"></div>
+        <div class="stage-node__circle"></div>
+        <div class="stage-node__status-badge"></div>
+      </div>
+      <div class="stage-node__label"></div>
+      <div class="stage-node__pill">התחל/י</div>
+    </button>
+  </div>
+</template>
+
+<template id="tplChip">
+  <button class="chip" data-act="dictCat"></button>
+</template>
+
+<template id="tplPronCard">
+  <button class="pron-card" data-act="speak">
+    <span class="pron-card__num"></span>
+    <span class="pron-card__word"></span>
+  </button>
+</template>
+
+<template id="tplReadRow">
+  <div class="read-row">
+    <span class="read-row__num"></span>
+    <div class="read-row__text">
+      <div class="read-row__en"></div>
+      <div class="read-row__he"></div>
+    </div>
+  </div>
+</template>
+
+<template id="tplDictSection">
+  <div class="dict-section">
+    <div class="dict-section__title"></div>
+    <div class="dict-section__list"></div>
+  </div>
+</template>
+
+<template id="tplDictRow">
+  <div class="dict-row">
+    <button class="dict-row__speak" data-act="speak">🔊</button>
+    <div class="dict-row__text">
+      <div class="dict-row__en"></div>
+      <div class="dict-row__he"></div>
+      <div class="dict-row__note"></div>
+    </div>
+  </div>
+</template>
+
+<template id="tplGameCard">
+  <button class="game-card" data-act="openGame">
+    <div class="game-card__top">
+      <div class="game-card__meta"></div>
+      <div class="game-card__icon"></div>
+    </div>
+    <div class="game-card__body">
+      <div class="game-card__he"></div>
+      <div class="game-card__en"></div>
+      <div class="game-card__desc"></div>
+    </div>
+    <div class="game-card__progress-row">
+      <div class="game-card__progress-bar"><div class="game-card__progress-fill"></div></div>
+      <span class="game-card__arrow">▶</span>
+    </div>
+  </button>
+</template>
+
+<template id="tplRadioOpt">
+  <button class="radio-opt" data-act="pracSelect">
+    <span class="radio-opt__text"></span>
+    <span class="radio-opt__tick">✅</span>
+  </button>
+</template>
+
+<template id="tplMcqOpt">
+  <button class="mcq-opt" data-act="select">
+    <span class="mcq-opt__text"></span>
+  </button>
+</template>
+
+<template id="tplStatCard">
+  <div class="stat-card">
+    <div class="stat-card__label"></div>
+    <div class="stat-card__value"></div>
+  </div>
+</template>
+
+<template id="tplRoleToggle">
+  <button class="role-toggle" data-act="switchRole">
+    <div class="role-toggle__check">✓</div>
+    <div class="role-toggle__img-wrap"><img class="role-toggle__img" alt=""></div>
+    <div class="role-toggle__name"></div>
+    <div class="role-toggle__meta"></div>
+  </button>
+</template>
+
+<template id="tplCompleteStat">
+  <div class="complete-stat">
+    <div class="complete-stat__label"></div>
+    <div class="complete-stat__value"></div>
+  </div>
+</template>
+
+<template id="tplTowerFloor">
+  <div class="tower-floor">
+    <span class="tower-floor__window"></span>
+    <span class="tower-floor__window"></span>
+  </div>
+</template>
+
+<template id="tplSpark">
+  <div class="spark">✨</div>
+</template>
+
+<template id="tplGem">
+  <div class="gem">💎</div>
+</template>
+
+<script src="data.js"></script>
+<script type="module" src="firebase-bridge.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
