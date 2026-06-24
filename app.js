@@ -284,7 +284,7 @@
   function startStage(id) {
     var st = stages[id]; var cur = curId(); var done = rdata().completed.indexOf(id) >= 0;
     if (!st) { toast('השלב יהיה זמין בקרוב ✈'); return; }
-    if (id !== cur && !done) { toast('סיים/י קודם את השלב הקודם 🔒'); return; }
+    if (id !== cur && !done) { toast('סיים/י קודם את השלב הקודם '); return; }
     setL({ screen: 'lesson', stageId: id, exIndex: 0, xp: 0, correct: 0, total: 0, startTime: Date.now(), selected: null, placed: [], feedback: null, revealed: false });
     autoSpeak();
   }
@@ -540,10 +540,10 @@
     var img = document.getElementById('welcomePhoto');
     if (state.userPhoto) {
       img.src = state.userPhoto;
-      img.className = 'welcome__tower welcome__tower--photo';
+      img.className = 'welcome__phenix welcome__phenix--photo';
     } else {
-      img.src = 'assets/tower.png';
-      img.className = 'welcome__tower';
+      img.src = 'assets/ChatGPT Image Jun 24, 2026, 04_33_09 PM.png';
+      img.className = 'welcome__phenix';
     }
     document.getElementById('welcomeName').textContent = state.userName || 'בקר או פקח';
   }
@@ -581,7 +581,7 @@
       var btn = document.createElement('button');
       btn.className = 'role-confirm-btn';
       btn.setAttribute('data-act', 'confirmRole');
-      btn.textContent = 'המשך/י כ' + roleInfo[picked].he + ' ►';
+      btn.textContent = 'המשך/י כ' + roleInfo[picked].he ;
       confirmWrap.appendChild(desc);
       confirmWrap.appendChild(btn);
     }
@@ -612,8 +612,8 @@
     document.getElementById('towerCardMeta').textContent = 'המגדל שלך · ' + floorsDone + '/10 קומות';
     document.getElementById('towerCardBarFill').style.width = towerPct;
 
-    document.getElementById('homeDecoA').src = roleInfo[role()].idle;
-    document.getElementById('homeDecoB').src = role() === 'ctrl' ? roleInfo.insp.salute : roleInfo.ctrl.salute;
+    // document.getElementById('homeDecoA').src = roleInfo[role()].idle;
+    // document.getElementById('homeDecoB').src = role() === 'ctrl' ? roleInfo.insp.salute : roleInfo.ctrl.salute;
 
     var nodesWrap = document.getElementById('homeNodes');
     clearEl(nodesWrap);
@@ -629,7 +629,7 @@
       var btn = node.querySelector('.stage-node__btn');
       btn.setAttribute('data-a', m.id);
       node.querySelector('.stage-node__circle').textContent = m.final ? '★' : String(m.id);
-      node.querySelector('.stage-node__status-badge').textContent = isDone ? '✓' : (isLocked ? '🔒' : '');
+      // node.querySelector('.stage-node__status-badge').textContent = isDone ? '✓' : (isLocked ? '🔒' : '');
       node.querySelector('.stage-node__label').textContent = m.label;
       nodesWrap.appendChild(node);
     });
