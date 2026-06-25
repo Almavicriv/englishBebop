@@ -200,20 +200,31 @@ img {
   background: radial-gradient(60% 100% at 50% 100%, rgba(255,221,160,.65), rgba(255,221,160,0));
 }
 .landing__tower-bg {
-  position: absolute; top: calc(54% - 4.75rem); left: 3.375rem;
-  height: clamp(5rem, 14vw, 6rem);
-  opacity: .32; filter: brightness(.3);
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 50vh;
+  max-height: none;
+  width: auto;
 }
 .landing__plane {
-  position: absolute; top: 6rem; right: -1.25rem;
+  position: absolute; 
+  top: 6rem; 
+  right: -1.25rem;
   width: clamp(6rem, 20vw, 8rem);
   transform: scaleX(-1) rotate(-12deg);
   animation: atcFloat 6s ease-in-out infinite;
   filter: drop-shadow(0 0.625rem 0.75rem rgba(0,0,0,.25));
 }
 .landing__runway-wrap {
-  position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center;
-  perspective: 120px; perspective-origin: 50% 30%;
+  position: absolute; 
+  inset: 0; 
+  display: flex; 
+  align-items: flex-end; 
+  justify-content: center;
+  perspective: 120px; 
+  perspective-origin: 50% 30%;
   opacity: 80%;
 }
 .landing__runway {
