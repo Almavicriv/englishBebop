@@ -87,8 +87,8 @@
    * ותיאור התפקיד שמוצג במסך בחירת התפקיד.
    */
   var roleInfo = {
-    ctrl: { he: 'בקר', en: 'Flight Controller', badge: 'בקר טיסה', tint: '#EAF2FB', accent: '#2E78C7', idle: './assets/bakarStand.PNG', salute: './assets/bakar.png', celebrate: 'assets/ctrl-hq.png', desc: 'מבקר/ת תעבורה אווירית מהמגדל ובקרת מכ"ם.' },
-    insp: { he: 'פקח', en: 'Flight Inspector', badge: 'פקח טיסה', tint: '#E7F4EC', accent: '#1F8A5B', idle: './assets/pakachStand.png', salute: './assets/pakachHand.png', celebrate: 'assets/pilot-thumb-hq.png', desc: 'פקח/ית טיסה — ליווי המראות, נחיתות ותנועה בשדה.' }
+    ctrl: { he: 'בקר/ית', en: 'Flight Controller', badge: 'בקר טיסה', tint: '#EAF2FB', accent: '#2E78C7', idle: './assets/bakarStand.PNG', salute: './assets/bakar.png', celebrate: 'assets/ctrl-hq.png', desc: 'מבקר/ת תעבורה אווירית מהמגדל ובקרת מכ"ם.' },
+    insp: { he: 'פקח/ית', en: 'Flight Inspector', badge: 'פקח טיסה', tint: '#E7F4EC', accent: '#1F8A5B', idle: './assets/girl.png', salute: './assets/girlHand.png', celebrate: 'assets/pilot-thumb-hq.png', desc: 'פקח/ית טיסה — ליווי המראות, נחיתות ותנועה בשדה.' }
   };
 
   /** הודעות עידוד שמוצגות באקראי כשמשתמש עונה נכון על תרגיל. */
