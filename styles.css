@@ -199,15 +199,30 @@ img {
   position: absolute; top: 54%; left: 0; right: 0; height: 5.625rem;
   background: radial-gradient(60% 100% at 50% 100%, rgba(255,221,160,.65), rgba(255,221,160,0));
 }
+
 .landing__tower-bg {
+    position: absolute;
+    bottom: 13%;
+    left: 72%;
+    transform: translateX(-50%);
+    height: 42%;
+    width: auto;
+    max-height: none;
+    z-index: 1;
+}
+
+
+.loading__ball-bg {
   position: absolute;
   bottom: 10%;
-  left: 50%;
+  left: 38%;
   transform: translateX(-50%);
-  height: 50vh;
-  max-height: none;
+  height: 30%; /* קצת יותר קטן מהמגדל */
   width: auto;
+  max-height: none;
+  z-index: 2; /* הכדור קצת לפני המגדל */
 }
+
 .landing__plane {
   position: absolute; 
   top: 6rem; 
