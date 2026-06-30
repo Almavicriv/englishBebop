@@ -284,7 +284,7 @@
   function startStage(id) {
     var st = stages[id]; var cur = curId(); var done = rdata().completed.indexOf(id) >= 0;
     if (!st) { toast('השלב יהיה זמין בקרוב ✈'); return; }
-    if (id !== cur && !done) { toast('סיים/י קודם את השלב הקודם '); return; }
+    // if (id !== cur && !done) { toast('סיים/י קודם את השלב הקודם '); return; }
     setL({ screen: 'lesson', stageId: id, exIndex: 0, xp: 0, correct: 0, total: 0, startTime: Date.now(), selected: null, placed: [], feedback: null, revealed: false });
     autoSpeak();
   }
@@ -545,7 +545,7 @@
       img.src = 'assets/ChatGPT Image Jun 24, 2026, 04_33_09 PM.png';
       img.className = 'welcome__phenix';
     }
-    document.getElementById('welcomeName').textContent = state.userName || 'בקר או פקח';
+    document.getElementById('welcomeName').textContent = state.userName || '';
   }
 
   /**
@@ -618,14 +618,19 @@
     var nodesWrap = document.getElementById('homeNodes');
     clearEl(nodesWrap);
     metaList.forEach(function (m) {
+      // var isCur = m.id === cur;
+      // var isLocked = !isDone && !isCur;
+      // var isLocked = false;
       var isDone = done.indexOf(m.id) >= 0;
       var isCur = m.id === cur;
-      var isLocked = !isDone && !isCur;
+      var isLocked = false;
+      var isAvailable = !isDone && !isCur && !!stages[m.id];
       var node = cloneTpl('tplStageNode');
       node.classList.toggle('is-done', isDone);
       node.classList.toggle('is-current', isCur);
       node.classList.toggle('is-locked', isLocked);
       node.classList.toggle('is-final', !!m.final);
+      node.classList.toggle('is-available', isAvailable);
       var btn = node.querySelector('.stage-node__btn');
       btn.setAttribute('data-a', m.id);
       node.querySelector('.stage-node__circle').textContent = m.final ? '★' : String(m.id);

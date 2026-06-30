@@ -443,12 +443,27 @@ img {
   background: #DCE4ED; color: #9AA9B8; box-shadow: 0 0.375rem 0 #C4CFDB;
 }
 .stage-node.is-done .stage-node__circle { background: #2E9E5B; color: #fff; box-shadow: 0 0.375rem 0 #1f7a45; }
-.stage-node.is-current .stage-node__circle { width: 4.75rem; height: 4.75rem; font-size: 1.563rem; background: #2E78C7; color: #fff; box-shadow: 0 0.4rem 0 #1B5C9E; }
+.stage-node.is-current .stage-node__circle { width: 5.5rem; height: 5.5rem; font-size: 1.563rem; background: #2E78C7; color: #fff; box-shadow: 0 0.4rem 0 #1B5C9E; }
 .stage-node.is-final .stage-node__circle { font-size: 1.688rem; }
 .stage-node__status-badge {
   position: absolute; top: -0.125rem; right: -0.125rem; width: 1.375rem; height: 1.375rem; border-radius: 50%;
   display: none; align-items: center; justify-content: center; font-size: 0.688rem; font-weight: 900;
   border: 2px solid #EEF3F8; background: #fff; color: #9AA9B8; z-index: 2;
+}
+.stage-node.is-available .stage-node__circle {
+  background: #2E78C7;
+  color: #fff;
+  box-shadow: 0 0.375rem 0 #1B5C9E;
+  /* opacity: 0.65; */
+}
+
+.stage-node.is-available .stage-node__label {
+  color: #2E78C7;
+}
+
+.stage-node.is-available .stage-node__pill {
+  display: block;
+  background: #2E78C7;
 }
 .stage-node:nth-child(even) .stage-node__status-badge { right: auto; left: -0.125rem; }
 .stage-node.is-done .stage-node__status-badge,
