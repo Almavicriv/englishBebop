@@ -10,22 +10,21 @@
 
   var root = document.getElementById('app');
 
+  /* ----------------------------- SOUNDS ----------------------------- */
   var sounds = {
-  correct:       new Audio('sounds/duolingo-correct (1).mp3'),
-  wrong:         new Audio('sounds/duolingo-wrong.mp3'),
-  stageComplete: new Audio('sounds/duolingo-completed-lesson.mp3'),
-  stageFailed:   new Audio('sounds/duolingo-wrong.mp3')
+    correct:       new Audio('sounds/duolingo-correct (1).mp3'),
+    wrong:         new Audio('sounds/duolingo-wrong.mp3'),
+    stageComplete: new Audio('sounds/duolingo-completed-lesson.mp3'),
+    stageFailed:   new Audio('sounds/duolingo-wrong.mp3')
   };
 
   function playSound(name) {
-    if (!state.soundOn) return; // מכבד את הגדרת הסאונד
+    if (!state.soundOn) return;
     var s = sounds[name];
     if (!s) return;
     s.currentTime = 0;
-    s.play().catch(function() {}); // catch למקרה שהדפדפן חוסם
-  };
-
-  /* ----------------------------- STATE ----------------------------- */
+    s.play().catch(function() {});
+  }
   var defRoleData = { ctrl: { completed: [], xp: 0 }, insp: { completed: [], xp: 0 } };
 
   var state = {
@@ -108,7 +107,10 @@
     var ex = curEx();
     if (ex.type === 'mcq') return state.selected !== null;
     if (ex.type === 'dnd') return state.placed.length === ex.answer.length;
-    if (ex.type === 'listen') return state.revealed;
+    if (ex.type === 'listen') {
+      if (ex.template) return state.placed.length === ex.answer.length;
+      return state.revealed;
+    }
     return false;
   }
 
@@ -158,16 +160,13 @@
     var ex = curEx(); var ok = false;
     if (ex.type === 'mcq') ok = !!ex.opts[state.selected][1];
     else if (ex.type === 'dnd') ok = state.placed.map(function (p) { return p.word; }).join('|') === ex.answer.join('|');
-    else ok = true;
-    cancelSpeech();
-
-    // ← כאן מוסיפים צליל
-    if (ok) {
-      playSound('correct'); // ✅ תשובה נכונה
-    } else {
-      playSound('wrong');   // ❌ תשובה שגויה
+    else if (ex.type === 'listen') {
+      if (ex.template) ok = state.placed.map(function (p) { return p.word; }).join('|') === ex.answer.join('|');
+      else ok = true;
     }
-
+    cancelSpeech();
+    if (ok) playSound('correct');
+    else    playSound('wrong');
     var title = ok ? POSITIVE[Math.floor(Math.random() * POSITIVE.length)] : 'לא מדויק — נסה/י לזכור';
     setL({ feedback: ok ? 'ok' : 'no', feedbackTitle: title, speaking: false,
       total: state.total + 1, correct: state.correct + (ok ? 1 : 0), xp: state.xp + (ok ? 10 : 0) });
@@ -185,12 +184,8 @@
         ? rd.completed.concat([state.stageId]) : rd.completed;
       var roleData = Object.assign({}, state.roleData);
       roleData[r] = { completed: completed, xp: rd.xp + state.xp };
-      //sound
-      if (passed) {
-      playSound('stageComplete'); //  שלב הושלם
-      } else {
-      playSound('stageFailed');   // לא עבר
-    } 
+      if (passed) { playSound('stageComplete'); }
+      else        { playSound('stageFailed');   }
       set({ screen: 'complete', roleData: roleData,
         gems: state.gems + (passed ? 5 : 0),
         finalStats: { xp: state.xp, acc: acc, time: mm + ':' + ss, passed: passed } });
@@ -622,6 +617,7 @@
 
   function buildExerciseListen(ex) {
     var wrap = document.createElement('div'); wrap.className = 'exercise-listen';
+
     var play = document.createElement('button'); play.className = 'exercise-listen__play';
     play.setAttribute('data-act', 'speak'); play.setAttribute('data-speak', ex.audio); play.textContent = '▶';
     var bars = document.createElement('div'); bars.className = 'exercise-listen__bars';
@@ -631,18 +627,66 @@
       var bar = document.createElement('div'); bar.className = 'exercise-listen__bar';
       bar.style.background = cols[b]; bar.style.animationDelay = delays[b]; bars.appendChild(bar);
     }
-    var hint = document.createElement('div'); hint.className = 'exercise-listen__hint'; hint.textContent = 'הקש/י לשמיעת התשדורת';
+    var hint = document.createElement('div'); hint.className = 'exercise-listen__hint';
+    hint.textContent = ex.template ? 'האזן/י ואז השלם/י את המשפט' : 'הקש/י לשמיעת התשדורת';
     wrap.appendChild(play); wrap.appendChild(bars); wrap.appendChild(hint);
-    if (state.revealed) {
-      var block = document.createElement('div'); block.className = 'exercise-listen__reveal-block';
-      var enLine = document.createElement('div'); enLine.className = 'exercise-listen__reveal-en'; enLine.textContent = '"' + ex.audio + '"';
-      var divider = document.createElement('div'); divider.className = 'exercise-listen__reveal-divider';
-      var heLine = document.createElement('div'); heLine.className = 'exercise-listen__reveal-he'; heLine.textContent = ex.he2;
-      block.appendChild(enLine); block.appendChild(divider); block.appendChild(heLine); wrap.appendChild(block);
+
+    if (ex.template) {
+      /* --- בניית משפט עם חסרות --- */
+      var sentence = document.createElement('div'); sentence.className = 'exercise-dnd__sentence';
+      var tx = document.createElement('div'); tx.className = 'exercise-dnd__tx'; tx.textContent = '● RX';
+      sentence.appendChild(tx);
+      var segs = ex.template.split('__'); var slot = 0;
+      for (var si = 0; si < segs.length; si++) {
+        var segTxt = segs[si].trim();
+        if (segTxt) { var segEl = document.createElement('span'); segEl.className = 'exercise-dnd__seg'; segEl.textContent = segTxt; sentence.appendChild(segEl); }
+        if (si < segs.length - 1) {
+          var idx = slot++;
+          var filled = idx < state.placed.length;
+          var slotBtn = document.createElement('button');
+          var slotCls = 'exercise-dnd__slot';
+          if (filled) {
+            if (state.feedback) {
+              slotCls += (state.placed[idx].word === ex.answer[idx]) ? ' is-listen-correct' : ' is-listen-wrong';
+            } else {
+              slotCls += ' is-filled';
+            }
+          }
+          slotBtn.className = slotCls;
+          slotBtn.setAttribute('data-act', 'removeSlot'); slotBtn.setAttribute('data-a', idx);
+          slotBtn.textContent = filled ? state.placed[idx].word : '＿＿';
+          if (state.feedback) slotBtn.disabled = true;
+          sentence.appendChild(slotBtn);
+        }
+      }
+      wrap.appendChild(sentence);
+
+      if (!state.feedback) {
+        var bankHint = document.createElement('div'); bankHint.className = 'exercise-dnd__hint'; bankHint.textContent = 'הקש/י על מילה כדי לשבץ אותה';
+        var bank = document.createElement('div'); bank.className = 'exercise-dnd__bank';
+        ex.bank.forEach(function (w, i) {
+          var used = state.placed.some(function (p) { return p.bankId === i; });
+          var wordBtn = document.createElement('button');
+          wordBtn.className = 'exercise-dnd__word' + (used ? ' is-used' : '');
+          wordBtn.setAttribute('data-act', 'place'); wordBtn.setAttribute('data-a', i); wordBtn.textContent = w;
+          bank.appendChild(wordBtn);
+        });
+        wrap.appendChild(bankHint); wrap.appendChild(bank);
+      }
+
     } else {
-      var revealBtn = document.createElement('button');
-      revealBtn.className = 'exercise-listen__reveal-btn'; revealBtn.setAttribute('data-act', 'reveal');
-      revealBtn.textContent = 'חשוף/י תרגום'; wrap.appendChild(revealBtn);
+      /* --- התנהגות ישנה: כפתור חשיפה --- */
+      if (state.revealed) {
+        var block = document.createElement('div'); block.className = 'exercise-listen__reveal-block';
+        var enLine = document.createElement('div'); enLine.className = 'exercise-listen__reveal-en'; enLine.textContent = '"' + ex.audio + '"';
+        var divider = document.createElement('div'); divider.className = 'exercise-listen__reveal-divider';
+        var heLine = document.createElement('div'); heLine.className = 'exercise-listen__reveal-he'; heLine.textContent = ex.he2;
+        block.appendChild(enLine); block.appendChild(divider); block.appendChild(heLine); wrap.appendChild(block);
+      } else {
+        var revealBtn = document.createElement('button');
+        revealBtn.className = 'exercise-listen__reveal-btn'; revealBtn.setAttribute('data-act', 'reveal');
+        revealBtn.textContent = 'חשוף/י תרגום'; wrap.appendChild(revealBtn);
+      }
     }
     return wrap;
   }
@@ -660,13 +704,14 @@
     var correctText = '';
     if (ex.type === 'mcq') { for (var ci = 0; ci < ex.opts.length; ci++) if (ex.opts[ci][1]) correctText = ex.opts[ci][0]; }
     else if (ex.type === 'dnd') correctText = ex.answer.join('  ·  ');
+    else if (ex.type === 'listen' && ex.template) correctText = ex.answer.join('  ·  ');
     footer.classList.add('lesson-feedback', ok ? 'is-ok' : 'is-no');
     var row = document.createElement('div'); row.className = 'lesson-feedback__row';
     var icon = document.createElement('div'); icon.className = 'lesson-feedback__icon ' + (ok ? 'is-ok' : 'is-no'); icon.textContent = ok ? '✓' : '!';
     var textWrap = document.createElement('div'); textWrap.className = 'lesson-feedback__text';
     var title = document.createElement('div'); title.className = 'lesson-feedback__title ' + (ok ? 'is-ok' : 'is-no'); title.textContent = state.feedbackTitle;
     textWrap.appendChild(title);
-    if (!ok && ex.type !== 'listen') { var corr = document.createElement('div'); corr.className = 'lesson-feedback__correct'; corr.textContent = correctText; textWrap.appendChild(corr); }
+    if (!ok && (ex.type !== 'listen' || ex.template)) { var corr = document.createElement('div'); corr.className = 'lesson-feedback__correct'; corr.textContent = correctText; textWrap.appendChild(corr); }
     row.appendChild(icon); row.appendChild(textWrap);
     var tip = document.createElement('div'); tip.className = 'lesson-feedback__tip';
     var tipIcon = document.createElement('span'); tipIcon.className = 'lesson-feedback__tip-icon'; tipIcon.textContent = '💡';

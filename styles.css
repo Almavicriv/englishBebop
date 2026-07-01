@@ -480,10 +480,7 @@ img {
   color: #2E78C7;
 }
 
-.stage-node.is-available .stage-node__pill {
-  display: block;
-  background: #2E78C7;
-}
+/* .stage-node__pill מוצג רק לשלב הנוכחי — ראה .stage-node.is-current למטה */
 .stage-node:nth-child(even) .stage-node__status-badge { right: auto; left: -0.125rem; }
 .stage-node.is-done .stage-node__status-badge,
 .stage-node.is-locked .stage-node__status-badge { display: flex; }
@@ -869,6 +866,8 @@ img {
   border: 2px dashed #4d6f93; background: rgba(255,255,255,.04); color: #6e8eaf;
 }
 .exercise-dnd__slot.is-filled { border: 2px solid #F2A100; background: #F2A100; color: #0E2A47; }
+.exercise-dnd__slot.is-listen-correct { border: 2px solid #2E9E5B; background: #E7F6EE; color: #1d6b3f; }
+.exercise-dnd__slot.is-listen-wrong   { border: 2px solid #E5484D; background: #FCEBEC; color: #9b2c2f; }
 .exercise-dnd__hint { text-align: center; font-size: 0.75rem; color: #9AA9B8; margin: 0.875rem 0 0.75rem; }
 .exercise-dnd__bank { display: flex; flex-wrap: wrap; gap: 0.688rem; justify-content: center; direction: ltr; }
 .exercise-dnd__word {
