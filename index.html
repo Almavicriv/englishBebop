@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>אנגלית תעופתית — אימון פקחים ובקרים</title>
-<meta name="description" content="אפליקציית אימון אנגלית מבצעית לפקחי ובקרי טיסה.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -28,27 +27,17 @@
     <!-- ============ SCREEN: landing ============ -->
     <section class="screen screen--landing" data-screen="landing">
       <div class="landing__stars"></div>
-      <!-- <div class="landing__glow"></div> -->
       <img src="assets/towerGraphics.png" alt="" class="landing__tower-bg">
       <img src="assets/ball.png" alt="" class="loading__ball-bg">
       <img src="assets/airplane.png" alt="" class="landing__plane">
-      <!-- <div class="landing__runway-wrap">
-        <div class="landing__runway">
-          <div class="landing__runway-center"></div>
-          <div class="landing__runway-light landing__runway-light--l"></div>
-          <div class="landing__runway-light landing__runway-light--r"></div>
-        </div>
-      </div> -->
       <div class="landing__hero">
         <h1 class="landing__title">בואו ללמוד<br>אנגלית תעופתית</h1>
         <p class="landing__sub">אפליקציית תרגול לפקחים ובקרים - שלב אחר שלב.</p>
       </div>
       <div class="landing__sheet">
-        <button class="btn-google" data-act="google">
-          <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.3 4.5 29.4 2.5 24 2.5 12.1 2.5 2.5 12.1 2.5 24S12.1 45.5 24 45.5 45.5 35.9 45.5 24c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M5 14.7l6.6 4.8C13.4 15.1 18.3 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.3 4.5 29.4 2.5 24 2.5 16.3 2.5 9.7 6.8 5 14.7z"/><path fill="#4CAF50" d="M24 45.5c5.3 0 10.1-2 13.7-5.3l-6.3-5.3c-2 1.5-4.6 2.4-7.4 2.4-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.6 41.1 16.2 45.5 24 45.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.4l6.3 5.3c-.4.4 6.9-5 6.9-14.7 0-1.2-.1-2.4-.4-3.5z"/></svg>
-          <span>התחבר/י עם Google</span>
+        <button class="btn-login" data-act="enter">
+          כניסה ללומדה
         </button>
-        <!-- <div class="landing__terms">בהמשך הינך מאשר/ת את תנאי השימוש ומדיניות הפרטיות</div> -->
       </div>
     </section>
 
@@ -56,8 +45,8 @@
     <section class="screen screen--welcome" data-screen="welcome">
       <div class="welcome__ring welcome__ring--a"></div>
       <div class="welcome__ring welcome__ring--b"></div>
-      <img id="welcomePhoto" src="assets/ChatGPT Image Jun 24, 2026, 04_33_09 PM.png" alt="" class="welcome__phenixa">
-      <h1 class="welcome__title">ברוך הבא <span id="welcomeName"></span>!</h1>
+      <img id="welcomePhoto" src="assets/ChatGPT Image Jun 24, 2026, 04_33_09 PM.png" alt="" class="welcome__phenix">
+      <h1 class="welcome__title">ברוך הבא!</h1>
       <p class="welcome__sub">מוכן/ה להמריא? נתחיל בבחירת הדמות ובניית מסלול האימון שלך.</p>
       <button class="welcome__cta" data-act="start">בחירת דמות</button>
     </section>
@@ -68,9 +57,7 @@
         <h1 class="role__title">בחר/י את הדמות שלך</h1>
         <p class="role__sub">הקש/י על דמות — לכל תפקיד מסלול והתקדמות נפרדים</p>
       </div>
-      <div class="role__cards" id="roleCards">
-        <!-- populated by JS from template#tplRoleCard -->
-      </div>
+      <div class="role__cards" id="roleCards"></div>
       <div class="role__confirm-wrap" id="roleConfirmWrap"></div>
     </section>
 
@@ -91,11 +78,7 @@
           </div>
         </div>
         <div class="home__path" id="homePath">
-          <!-- <img id="homeDecoA" src="assets/ctrl-hq.png" alt="" class="home__deco home__deco--a">
-          <img id="homeDecoB" src="assets/pilot-salute-hq.png" alt="" class="home__deco home__deco--b"> -->
-          <div class="home__nodes" id="homeNodes">
-            <!-- populated by JS from template#tplStageNode -->
-          </div>
+          <div class="home__nodes" id="homeNodes"></div>
         </div>
       </div>
     </section>
@@ -108,18 +91,13 @@
           <span class="dict__search-icon">🔍</span>
           <input id="dictInput" class="dict__search-input" placeholder="חיפוש...">
         </div>
-        <div class="atc-scroll dict__chips" id="dictChips">
-          <!-- populated by JS from template#tplChip -->
-        </div>
+        <div class="atc-scroll dict__chips" id="dictChips"></div>
       </div>
-      <div class="atc-scroll dict__body" id="dictBody">
-        <!-- populated by JS: numbers block, read-scale block, category sections -->
-      </div>
+      <div class="atc-scroll dict__body" id="dictBody"></div>
     </section>
 
     <!-- ============ SCREEN: practice (hub) ============ -->
     <section class="screen screen--practice" data-screen="practice">
-
       <div class="prac-hub" id="pracHub">
         <div class="prac-hub__head">
           <div>
@@ -129,9 +107,7 @@
           <div class="prac-hub__streak"><span>🔥</span><span id="pracStreak">0</span></div>
         </div>
         <div class="atc-scroll prac-hub__scroll">
-          <div class="prac-hub__grid" id="pracGamesGrid">
-            <!-- populated by JS from template#tplGameCard -->
-          </div>
+          <div class="prac-hub__grid" id="pracGamesGrid"></div>
           <div class="prac-hub__daily">
             <div class="prac-hub__daily-eyebrow">⭐ אתגר יומי</div>
             <div class="prac-hub__daily-title">ענה נכון על 5 בקשות קשר ברצף</div>
@@ -143,7 +119,6 @@
           </div>
         </div>
       </div>
-
       <div class="prac-radio" id="pracRadio" hidden>
         <div class="prac-radio__confetti" id="pracConfetti"></div>
         <div class="prac-radio__top">
@@ -169,16 +144,11 @@
               <div class="prac-radio__transmission-text">"Tower, request permission to land runway 26."</div>
             </div>
             <div class="prac-radio__question">מהי התגובה הנכונה?</div>
-            <div class="prac-radio__opts" id="pracRadioOpts">
-              <!-- populated by JS from template#tplRadioOpt -->
-            </div>
+            <div class="prac-radio__opts" id="pracRadioOpts"></div>
           </div>
         </div>
-        <div class="prac-radio__footer" id="pracRadioFooter">
-          <!-- populated by JS: check button OR feedback block -->
-        </div>
+        <div class="prac-radio__footer" id="pracRadioFooter"></div>
       </div>
-
     </section>
 
     <!-- ============ SCREEN: profile ============ -->
@@ -187,18 +157,14 @@
         <div class="profile__hero">
           <div class="profile__photo-wrap" id="profilePhotoWrap"></div>
           <div class="profile__hero-info">
-            <div class="profile__name" id="profileName"></div>
+            <div class="profile__name" id="profileName">לומד/ת</div>
             <div class="profile__badge" id="profileBadge">🎧 בקר טיסה</div>
           </div>
         </div>
-        <div class="profile__stats" id="profileStats">
-          <!-- populated by JS from template#tplStatCard -->
-        </div>
+        <div class="profile__stats" id="profileStats"></div>
         <div class="profile__section">
           <div class="profile__section-title">הדמות שלי</div>
-          <div class="profile__role-toggles" id="profileRoleToggles">
-            <!-- populated by JS from template#tplRoleToggle -->
-          </div>
+          <div class="profile__role-toggles" id="profileRoleToggles"></div>
         </div>
         <div class="profile__section">
           <div class="profile__section-title">הגדרות</div>
@@ -207,11 +173,6 @@
               <span class="profile__setting-icon">🔊</span>
               <span class="profile__setting-label">קריינות קולית</span>
               <span class="switch" id="soundSwitch"><span class="switch__knob"></span></span>
-            </button>
-            <button class="profile__setting profile__setting--danger" data-act="signOut">
-              <span class="profile__setting-icon">🚪</span>
-              <span class="profile__setting-label">התנתקות</span>
-              <span class="profile__setting-chevron">‹</span>
             </button>
           </div>
         </div>
@@ -225,7 +186,7 @@
         <div class="lesson__progress"><div class="lesson__progress-fill" id="lessonProgressFill"></div></div>
       </div>
       <div class="atc-scroll lesson__body">
-        <div class="lesson__kicker" id="lessonKicker">שלב 1 · הגיית מספרים ואיות</div>
+        <div class="lesson__kicker" id="lessonKicker"></div>
         <div class="lesson__prompt-row">
           <button class="lesson__char-btn" data-act="speak" id="lessonCharBtn">
             <img id="lessonCharImg" src="assets/ctrl-hq.png" alt="" class="lesson__char-img">
@@ -239,13 +200,9 @@
             <div class="lesson__bubble-text" id="lessonHeText"></div>
           </div>
         </div>
-        <div class="lesson__exercise" id="lessonExercise">
-          <!-- populated by JS depending on exercise type (mcq / dnd / listen) -->
-        </div>
+        <div class="lesson__exercise" id="lessonExercise"></div>
       </div>
-      <div class="lesson__footer" id="lessonFooter">
-        <!-- populated by JS: check button OR feedback sheet -->
-      </div>
+      <div class="lesson__footer" id="lessonFooter"></div>
     </section>
 
     <!-- ============ SCREEN: complete ============ -->
@@ -258,9 +215,7 @@
         <div class="complete__tower" id="completeTower"></div>
       </div>
       <div class="complete__msg" id="completeMsg"></div>
-      <div class="complete__stats" id="completeStats">
-        <!-- populated by JS from template#tplCompleteStat -->
-      </div>
+      <div class="complete__stats" id="completeStats"></div>
       <button class="complete__cta" data-act="goHome">המשך/י למסלול</button>
     </section>
 
@@ -284,16 +239,12 @@
       </button>
     </nav>
 
-    <!-- ============ TOAST ============ -->
     <div class="toast" id="toast" hidden></div>
 
   </div>
 </div>
 
-<!-- =====================================================================
-     TEMPLATES — cloned by app.js for repeated/dynamic items
-     ===================================================================== -->
-
+<!-- ===== TEMPLATES ===== -->
 <template id="tplRoleCard">
   <button class="role-card" data-act="pickRole">
     <div class="role-card__check">✓</div>
@@ -416,16 +367,10 @@
   </div>
 </template>
 
-<template id="tplSpark">
-  <div class="spark">✨</div>
-</template>
-
-<template id="tplGem">
-  <div class="gem">💎</div>
-</template>
+<template id="tplSpark"><div class="spark">✨</div></template>
+<template id="tplGem"><div class="gem">💎</div></template>
 
 <script src="data.js"></script>
-<script type="module" src="firebase-bridge.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

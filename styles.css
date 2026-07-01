@@ -200,27 +200,28 @@ img {
   background: radial-gradient(60% 100% at 50% 100%, rgba(255,221,160,.65), rgba(255,221,160,0));
 }
 
+/* ---- מגדל וכדור: ממוקמים זה ליד זה, אחוזים יחסיים לגובה ה-frame (לא vh)
+       כדי שיתאימו גם לדסקטופ (frame קבוע ~846px) וגם למובייל (100dvh) ---- */
 .landing__tower-bg {
-    position: absolute;
-    bottom: 13%;
-    left: 72%;
-    transform: translateX(-50%);
-    height: 42%;
-    width: auto;
-    max-height: none;
-    z-index: 1;
+  position: absolute;
+  bottom: 8%;
+  left: 60%;
+  transform: translateX(-50%);
+  height: 42%;
+  width: auto;
+  max-height: none;
+  z-index: 1; /* המגדל מאחור */
 }
-
 
 .loading__ball-bg {
   position: absolute;
-  bottom: 10%;
+  bottom: 6%;
   left: 38%;
   transform: translateX(-50%);
   height: 30%; /* קצת יותר קטן מהמגדל */
   width: auto;
   max-height: none;
-  z-index: 2; /* הכדור קצת לפני המגדל */
+  z-index: 2; /* הכדור קצת לפני המגדל, אבל לא מסתיר אותו לגמרי */
 }
 
 .landing__plane {
@@ -302,12 +303,15 @@ img {
   padding: 1.375rem 1.75rem 2.25rem; position: relative; z-index: 5;
   box-shadow: 0 -0.75rem 2.125rem rgba(11,37,69,.3);
 }
-.btn-google {
-  width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.688rem;
-  background: #fff; color: #1f2937; border: 1.5px solid #E1E8F0; border-radius: 1rem;
-  padding: 1rem; font-size: clamp(0.875rem, 3vw, 1rem); font-weight: 700; cursor: pointer;
-  box-shadow: 0 0.5rem 1.25rem rgba(14,42,71,.1);
+
+/* ---- כפתור כניסה פשוט (במקום כפתור Google) ---- */
+.btn-login {
+  width: 100%; display: flex; align-items: center; justify-content: center;
+  background: #2E78C7; color: #fff; border: none; border-radius: 1rem;
+  padding: 1rem; font-size: clamp(0.875rem, 3vw, 1rem); font-weight: 800; cursor: pointer;
+  box-shadow: 0 0.375rem 0 #1B5C9E;
 }
+
 .landing__terms { font-size: 0.719rem; color: #9AA9B8; text-align: center; margin-top: 0.813rem; }
 
 /* =====================================================================
