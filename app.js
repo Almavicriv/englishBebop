@@ -1,5 +1,5 @@
 /* =====================================================================
-   ATC English Trainer — app logic
+   ATC English Trainer - app logic
    ===================================================================== */
 (function () {
   'use strict';
@@ -137,7 +137,7 @@
 
   /* ----------------------------- ACTIONS ----------------------------- */
 
-  /* כניסה ישירה ללומדה — ללא אימות */
+  /* כניסה ישירה ללומדה  ללא אימות */
   function enter() { set({ screen: 'welcome' }); }
 
   function startWelcome() { set({ screen: state.role ? 'home' : 'role', tab: 'home' }); }
@@ -186,7 +186,7 @@
     cancelSpeech();
     if (ok) playSound('correct');
     else    playSound('wrong');
-    var title = ok ? POSITIVE[Math.floor(Math.random() * POSITIVE.length)] : 'לא מדויק — נסה/י לזכור';
+    var title = ok ? POSITIVE[Math.floor(Math.random() * POSITIVE.length)] : 'לא מדויק , נסה/י לזכור';
     setL({ feedback: ok ? 'ok' : 'no', feedbackTitle: title, speaking: false,
       total: state.total + 1, correct: state.correct + (ok ? 1 : 0), xp: state.xp + (ok ? 10 : 0) });
   }
@@ -247,7 +247,7 @@
 
   function openMemory() {
     if (!document.getElementById('pracMemory') || !document.getElementById('tplMemLevel')) {
-      toast('חסר markup של משחק הזיכרון ב-index.html — עדכן/י את הקובץ');
+      toast('חסר markup של משחק הזיכרון ב-index.html עדכן/י את הקובץ');
       return;
     }
     clearInterval(memTimer); clearTimeout(memFlipTimer);
@@ -583,7 +583,7 @@
     else if (isMemory) {
       try { renderMemory(); }
       catch (err) {
-        toast('שגיאה בטעינת משחק הזיכרון — בדוק/י שכל 4 הקבצים עודכנו');
+        toast('שגיאה בטעינת משחק הזיכרון  בדוק/י שכל 4 הקבצים עודכנו');
         setL({ pracView: 'hub' });
       }
     }
@@ -640,7 +640,7 @@
       footer.appendChild(btn);
     } else {
       var ok = sel === 0;
-      var title = ok ? POSITIVE[Math.floor(Math.random() * POSITIVE.length)] : 'לא מדויק — נסה/י שוב';
+      var title = ok ? POSITIVE[Math.floor(Math.random() * POSITIVE.length)] : 'לא מדויק , נסה/י שוב';
       var fb = document.createElement('div'); fb.className = 'prac-feedback';
       var row = document.createElement('div'); row.className = 'prac-feedback__row';
       var icon = document.createElement('div'); icon.className = 'prac-feedback__icon ' + (ok ? 'is-ok' : 'is-no'); icon.textContent = ok ? '✓' : '!';
@@ -948,7 +948,7 @@
   }
   wireDictInput();
 
-  /* ---- כפתורי סגירה (✕) בעמוד התרגול — חיווט ישיר בנוסף ל-delegation ---- */
+  /* ---- כפתורי סגירה (✕) בעמוד התרגול - חיווט ישיר בנוסף ל-delegation ---- */
   function wireCloseButtons() {
     var radioClose = document.getElementById('pracRadioCloseBtn');
     if (radioClose) radioClose.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); pracBack(); });
