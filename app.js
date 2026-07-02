@@ -7,7 +7,22 @@
   var D = window.ATC_DATA;
   var metaList = D.metaList, stages = D.stages, PRON = D.PRON, READ = D.READ, CATS = D.CATS;
   var roleInfo = D.roleInfo, POSITIVE = D.POSITIVE, GAMES = D.GAMES, RADIO_GAME = D.RADIO_GAME, DICT_CHIPS = D.DICT_CHIPS;
-  var MEMORY_LEVELS = D.MEMORY_LEVELS, MEMORY_POOL = D.MEMORY_POOL;
+  var MEMORY_LEVELS_FALLBACK = [
+    { id: 'easy',   he: 'קל',    sub: '6 זוגות · ללא טיימר', pairs: 6,  seconds: null, dot: '#2E9E5B' },
+    { id: 'medium', he: 'בינוני', sub: '8 זוגות · 90 שניות',  pairs: 8,  seconds: 90,   dot: '#F2A100' },
+    { id: 'hard',   he: 'קשה',   sub: '12 זוגות · 60 שניות', pairs: 12, seconds: 60,   dot: '#E5484D' }
+  ];
+  var MEMORY_POOL_FALLBACK = [
+    ['Say again', 'אמור שנית'], ['Roger', 'קיבלתי'], ['Affirm', 'חיובי'], ['Negative', 'שלילי'],
+    ['Standby', 'מיד אתך'], ['Disregard', 'התעלם'], ['Unable', 'לא מסוגל'], ['Readback', 'חזור על'],
+    ['Climb', 'טפס'], ['Descend', 'הנמך'], ['Maintain', 'שמור'], ['Taxi', 'הסע'],
+    ['Hold short', 'עצור לפני'], ['Cleared to land', 'רשאי לנחות'], ['Go around', 'לך סביב'],
+    ['Traffic', 'תנועה'], ['Wind calm', 'רוח קלה'], ['QNH', 'לחץ ברומטרי'], ['Visibility', 'ראות'],
+    ['Overcast', 'שמים מכוסים'], ['Mayday', 'מצוקה'], ['Pan-Pan', 'תקלה'],
+    ['Vacate the runway', 'פנה את המסלול'], ['Line up and wait', 'התיישר והמתן']
+  ];
+  var MEMORY_LEVELS = (D.MEMORY_LEVELS && D.MEMORY_LEVELS.length) ? D.MEMORY_LEVELS : MEMORY_LEVELS_FALLBACK;
+  var MEMORY_POOL = (D.MEMORY_POOL && D.MEMORY_POOL.length) ? D.MEMORY_POOL : MEMORY_POOL_FALLBACK;
 
   var root = document.getElementById('app');
 
@@ -130,10 +145,11 @@
   function confirmRole() { var r = state.pendingRole || 'ctrl'; set({ role: r, pendingRole: null, screen: 'home', tab: 'home' }); }
 
   function setTab(tb) {
-    if (tb === 'home') set({ screen: 'home', tab: 'home' });
-    else if (tb === 'dict') set({ screen: 'dictionary', tab: 'dict' });
+    if (tb !== 'practice') { clearInterval(memTimer); clearTimeout(memFlipTimer); }
+    if (tb === 'home') set({ screen: 'home', tab: 'home', pracView: 'hub', memView: 'levels' });
+    else if (tb === 'dict') set({ screen: 'dictionary', tab: 'dict', pracView: 'hub', memView: 'levels' });
     else if (tb === 'practice') set({ screen: 'practice', tab: 'practice', pracView: 'hub' });
-    else if (tb === 'profile') set({ screen: 'profile', tab: 'profile' });
+    else if (tb === 'profile') set({ screen: 'profile', tab: 'profile', pracView: 'hub', memView: 'levels' });
   }
 
   function toggleSound() { set({ soundOn: !state.soundOn }); }
@@ -202,8 +218,7 @@
   function autoSpeak() { var ex = curEx(); clearTimeout(autoT); autoT = setTimeout(function () { speak(exVoice(ex)); }, 360); }
 
   function openGame(id) {
-    if (id === 'radio') setL({ pracView: 'radio', pracSel: null, pracDone: false, pracCelebrate: false });
-    else if (id === 'memory') openMemory();
+    if (id === 'memory') openMemory();
     else toast('המשחק ייפתח בקרוב 🎮');
   }
   function pracBack() { cancelSpeech(); setL({ pracView: 'hub' }); }
@@ -231,6 +246,10 @@
   }
 
   function openMemory() {
+    if (!document.getElementById('pracMemory') || !document.getElementById('tplMemLevel')) {
+      toast('חסר markup של משחק הזיכרון ב-index.html — עדכן/י את הקובץ');
+      return;
+    }
     clearInterval(memTimer); clearTimeout(memFlipTimer);
     setL({ pracView: 'memory', memView: 'levels' });
   }
@@ -319,8 +338,7 @@
 
   function memBack() {
     clearInterval(memTimer); clearTimeout(memFlipTimer);
-    if (state.memView === 'board') setL({ memView: 'levels' });
-    else setL({ pracView: 'hub' });
+    setL({ pracView: 'hub', memView: 'levels' });
   }
 
   /* ----------------------------- TOWER BUILDER ----------------------------- */
@@ -374,6 +392,16 @@
     for (var i = 0; i < screens.length; i++) {
       screens[i].classList.toggle('is-active', screens[i].getAttribute('data-screen') === state.screen);
     }
+
+    /* רשת ביטחון: אם לא נמצאים בעמוד התרגול, לוודא שחלונות התרגול (רדיו/זיכרון) סגורים לגמרי
+       ולא נשארים גלויים בעמודים אחרים, בלי קשר למקום שבו הם ממוקמים ב-HTML */
+    if (state.screen !== 'practice') {
+      ['pracHub', 'pracRadio', 'pracMemory'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+    }
+
     var navbar = document.getElementById('navbar');
     navbar.classList.toggle('is-visible', navScreens.indexOf(state.screen) >= 0);
     var navBtns = navbar.querySelectorAll('.navbar__btn');
@@ -548,22 +576,27 @@
     var memory = document.getElementById('pracMemory');
     var isRadio = state.pracView === 'radio';
     var isMemory = state.pracView === 'memory';
-    hub.hidden = isRadio || isMemory;
-    radio.hidden = !isRadio;
-    memory.hidden = !isMemory;
+    hub.style.display = (isRadio || isMemory) ? 'none' : 'flex';
+    radio.style.display = isRadio ? 'flex' : 'none';
+    memory.style.display = isMemory ? 'flex' : 'none';
     if (isRadio) renderPracRadio();
-    else if (isMemory) renderMemory();
+    else if (isMemory) {
+      try { renderMemory(); }
+      catch (err) {
+        toast('שגיאה בטעינת משחק הזיכרון — בדוק/י שכל 4 הקבצים עודכנו');
+        setL({ pracView: 'hub' });
+      }
+    }
     else renderPracHub();
   }
 
   function renderPracHub() {
-    document.getElementById('pracStreak').textContent = state.streak;
     var grid = document.getElementById('pracGamesGrid'); clearEl(grid);
     GAMES.forEach(function (g) {
       var card = cloneTpl('tplGameCard');
       card.setAttribute('data-a', g.id);
+      card.classList.toggle('is-disabled', g.id !== 'memory');
       card.querySelector('.game-card__top').style.background = g.bg;
-      var meta = card.querySelector('.game-card__meta'); meta.textContent = g.meta; meta.style.color = g.accent;
       card.querySelector('.game-card__icon').appendChild(gameIconSVG(g.kind, g.accent));
       card.querySelector('.game-card__he').textContent = g.he;
       var en = card.querySelector('.game-card__en'); en.textContent = g.en; en.style.color = g.accent;
@@ -628,8 +661,8 @@
     var levelsEl = document.getElementById('memLevels');
     var boardEl = document.getElementById('memBoard');
     var isBoard = state.memView === 'board';
-    levelsEl.hidden = isBoard;
-    boardEl.hidden = !isBoard;
+    levelsEl.style.display = isBoard ? 'none' : 'flex';
+    boardEl.style.display = isBoard ? 'flex' : 'none';
     if (isBoard) renderMemBoard(); else renderMemLevels();
   }
 
@@ -914,6 +947,17 @@
     });
   }
   wireDictInput();
+
+  /* ---- כפתורי סגירה (✕) בעמוד התרגול — חיווט ישיר בנוסף ל-delegation ---- */
+  function wireCloseButtons() {
+    var radioClose = document.getElementById('pracRadioCloseBtn');
+    if (radioClose) radioClose.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); pracBack(); });
+    var memLevelsClose = document.getElementById('memLevelsCloseBtn');
+    if (memLevelsClose) memLevelsClose.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); memBack(); });
+    var memBoardClose = document.getElementById('memBoardCloseBtn');
+    if (memBoardClose) memBoardClose.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); memBack(); });
+  }
+  wireCloseButtons();
 
   var ACTS = {
     enter: enter, start: startWelcome, confirmRole: confirmRole,

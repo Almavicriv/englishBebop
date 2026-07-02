@@ -104,10 +104,10 @@
             <h1 class="prac-hub__title">מרכז התרגול 🎮</h1>
             <div class="prac-hub__sub">בחר/י משחק וצבור/י XP</div>
           </div>
-          <div class="prac-hub__streak"><span>🔥</span><span id="pracStreak">0</span></div>
         </div>
         <div class="atc-scroll prac-hub__scroll">
           <div class="prac-hub__grid" id="pracGamesGrid"></div>
+          <!-- אתגר יומי — הוסר זמנית, להחזרה פשוט הסירו את ההערה
           <div class="prac-hub__daily">
             <div class="prac-hub__daily-eyebrow">⭐ אתגר יומי</div>
             <div class="prac-hub__daily-title">ענה נכון על 5 בקשות קשר ברצף</div>
@@ -117,12 +117,13 @@
             </div>
             <button class="prac-hub__daily-btn" data-act="openGame" data-a="radio">התחל משימה</button>
           </div>
+          -->
         </div>
       </div>
       <div class="prac-radio" id="pracRadio" hidden>
         <div class="prac-radio__confetti" id="pracConfetti"></div>
         <div class="prac-radio__top">
-          <button class="prac-radio__close" data-act="pracBack">✕</button>
+          <button class="prac-radio__close" id="pracRadioCloseBtn" data-act="pracBack">✕</button>
           <div class="prac-radio__progress">
             <div class="prac-radio__progress-row">
               <span class="prac-radio__progress-label">משימת פיקוח</span>
@@ -158,7 +159,7 @@
               <div class="mem-levels__title">זיכרון מונחים</div>
               <div class="mem-levels__sub">Memory Match · בחר/י רמת קושי</div>
             </div>
-            <button class="prac-radio__close" data-act="pracBack">✕</button>
+            <button class="prac-radio__close" id="memLevelsCloseBtn" data-act="pracBack">✕</button>
           </div>
           <div class="atc-scroll mem-levels__scroll">
             <div class="mem-levels__banner">
@@ -172,7 +173,7 @@
         <!-- sub-view: game board -->
         <div class="mem-board" id="memBoard" hidden>
           <div class="mem-board__top">
-            <button class="prac-radio__close" data-act="pracBack">✕</button>
+            <button class="prac-radio__close" id="memBoardCloseBtn" data-act="pracBack">✕</button>
             <div class="mem-board__progress"><div class="mem-board__progress-fill" id="memProgressFill"></div></div>
             <div class="mem-board__timer" id="memTimerChip" hidden>—</div>
           </div>
