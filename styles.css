@@ -205,9 +205,9 @@ img {
 .landing__tower-bg {
   position: absolute;
   bottom: 8%;
-  left: 60%;
+  left: 70%;
   transform: translateX(-50%);
-  height: 42%;
+  height: 40%;
   width: auto;
   max-height: none;
   z-index: 1; /* המגדל מאחור */
@@ -216,9 +216,9 @@ img {
 .loading__ball-bg {
   position: absolute;
   bottom: 6%;
-  left: 38%;
+  left: 30%;
   transform: translateX(-50%);
-  height: 30%; /* קצת יותר קטן מהמגדל */
+  height: 25%; /* קצת יותר קטן מהמגדל */
   width: auto;
   max-height: none;
   z-index: 2; /* הכדור קצת לפני המגדל, אבל לא מסתיר אותו לגמרי */

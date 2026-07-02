@@ -517,16 +517,10 @@
     var fb2 = document.createElement('div'); fb2.className = 'profile__photo-fallback';
     var fbImg = document.createElement('img'); fbImg.src = info.idle; fbImg.alt = '';
     fb2.appendChild(fbImg); photoWrap.appendChild(fb2);
-    document.getElementById('profileName').textContent = 'לומד/ת';
     document.getElementById('profileBadge').textContent = info.badge;
-    var stats = [['#F2870A', state.streak, '🔥 רצף ימים'], ['#2E78C7', rdata().xp, '✈️ XP בתפקיד'], ['#2E9E5B', rdata().completed.length, '✅ שלבים']];
-    var statsWrap = document.getElementById('profileStats'); clearEl(statsWrap);
-    stats.forEach(function (s) {
-      var card = cloneTpl('tplStatCard');
-      var val = card.querySelector('.stat-card__value'); val.textContent = s[1]; val.style.color = s[0];
-      card.querySelector('.stat-card__label').textContent = s[2];
-      statsWrap.appendChild(card);
-    });
+    var statsWrap = document.getElementById('profileStats');
+    clearEl(statsWrap);
+    statsWrap.style.display = 'none';
     var togglesWrap = document.getElementById('profileRoleToggles'); clearEl(togglesWrap);
     ['ctrl', 'insp'].forEach(function (r) {
       var ri = roleInfo[r]; var sel = role() === r;
@@ -552,8 +546,10 @@
     document.getElementById('lessonKicker').textContent = 'שלב ' + st.num + ' · ' + st.title;
     var charImg = (state.exIndex % 2 === 1) ? info.salute : info.idle;
     var charImgEl = document.getElementById('lessonCharImg');
-    charImgEl.src = charImg;
-    charImgEl.classList.toggle('is-speaking', state.speaking);
+    if (charImgEl) {
+      charImgEl.src = charImg;
+      charImgEl.classList.toggle('is-speaking', state.speaking);
+    }
     document.getElementById('lessonCharBtn').setAttribute('data-speak', exVoice(ex));
     document.getElementById('lessonRoleLabel').textContent = info.he;
     document.getElementById('lessonSpeakState').textContent = '· ' + (state.speaking ? 'מדבר/ת…' : 'הקש/י לשמיעה');
