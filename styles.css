@@ -742,6 +742,76 @@ img {
 .gem { position: absolute; top: -1.25rem; animation: towerSpark 1.6s ease-out infinite; }
 
 /* =====================================================================
+   memory game (זיכרון מונחים)
+   ===================================================================== */
+.prac-memory { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+/* level select */
+.mem-levels { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.mem-levels__top { display: flex; align-items: flex-start; justify-content: space-between; padding: 0.5rem 1.125rem 0.75rem; flex: none; }
+.mem-levels__title { font-size: clamp(1.125rem, 4vw, 1.313rem); font-weight: 900; color: #0E2A47; }
+.mem-levels__sub { font-size: 0.75rem; font-weight: 600; color: #5B6B7C; margin-top: 0.188rem; }
+.mem-levels__scroll { flex: 1; padding: 0 1.125rem 5rem; }
+.mem-levels__banner {
+  background: linear-gradient(150deg,#8A6CFF,#6A45E0); border-radius: 1.375rem;
+  padding: 1.125rem; color: #fff; position: relative; overflow: hidden; margin-bottom: 1rem;
+}
+.mem-levels__banner::before {
+  content: ''; position: absolute; top: -2.5rem; right: -2.5rem; width: 7rem; height: 7rem;
+  border-radius: 50%; background: rgba(255,255,255,.12);
+}
+.mem-levels__banner-eyebrow { position: relative; z-index: 1; font-size: 0.844rem; font-weight: 800; }
+.mem-levels__banner-text { position: relative; z-index: 1; font-size: 0.906rem; font-weight: 700; line-height: 1.5; margin-top: 0.5rem; }
+.mem-levels__list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.mem-level {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%; background: #fff;
+  border-radius: 1.25rem; padding: 1.125rem 1.125rem; cursor: pointer;
+  box-shadow: 0 0.5rem 1.25rem rgba(14,42,71,.08);
+}
+.mem-level__chevron { font-size: 1.25rem; color: #C7D2DE; flex: none; }
+.mem-level__text { flex: 1; text-align: right; }
+.mem-level__he { font-size: 1.063rem; font-weight: 900; color: #0E2A47; }
+.mem-level__sub { font-size: 0.75rem; font-weight: 600; color: #9AA9B8; margin-top: 0.188rem; }
+.mem-level__dot { width: 1.125rem; height: 1.125rem; border-radius: 50%; flex: none; box-shadow: 0 0 0 4px rgba(0,0,0,.04); }
+
+/* board */
+.mem-board { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.mem-board__top { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1.125rem 0.625rem; flex: none; }
+.mem-board__progress { flex: 1; height: 0.75rem; background: #E6ECF3; border-radius: 0.5rem; overflow: hidden; }
+.mem-board__progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#8A6CFF,#6A45E0); border-radius: 0.5rem; transition: width .35s; }
+.mem-board__timer {
+  flex: none; background: #0E2A47; color: #fff; font-size: 0.813rem; font-weight: 800;
+  padding: 0.375rem 0.75rem; border-radius: 0.75rem; direction: ltr;
+}
+.mem-board__stats { padding: 0 1.125rem 0.625rem; text-align: right; font-size: 0.813rem; font-weight: 700; color: #5B6B7C; flex: none; }
+.mem-board__scroll { flex: 1; padding: 0 1.125rem 5rem; }
+.mem-board__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.625rem; }
+
+.mem-card { padding: 0; aspect-ratio: 1 / 1; border-radius: 0.938rem; cursor: pointer; perspective: 62.5rem; }
+.mem-card__inner {
+  position: relative; width: 100%; height: 100%; border-radius: 0.938rem;
+  transition: transform .4s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d;
+}
+.mem-card.is-flipped .mem-card__inner { transform: rotateY(180deg); }
+.mem-card__face {
+  position: absolute; inset: 0; backface-visibility: hidden; border-radius: 0.938rem;
+  display: flex; align-items: center; justify-content: center; padding: 0.25rem; text-align: center;
+}
+.mem-card__face--front {
+  background: linear-gradient(150deg,#EDE9FF,#DCD3FF); border: 1px solid rgba(122,92,252,.18);
+  font-size: clamp(1.125rem, 5vw, 1.375rem);
+}
+.mem-card__face--back {
+  background: #fff; border: 2px solid #8A6CFF; transform: rotateY(180deg);
+}
+.mem-card.is-matched .mem-card__face--back { background: #E7F6EE; border-color: #2E9E5B; }
+.mem-card__text {
+  font-size: clamp(0.594rem, 2.6vw, 0.688rem); font-weight: 800; color: #0E2A47; line-height: 1.25;
+  word-break: break-word; direction: ltr;
+}
+
+/* =====================================================================
    SCREEN: profile
    ===================================================================== */
 .screen--profile { background: #EEF3F8; }

@@ -7,6 +7,7 @@
   var D = window.ATC_DATA;
   var metaList = D.metaList, stages = D.stages, PRON = D.PRON, READ = D.READ, CATS = D.CATS;
   var roleInfo = D.roleInfo, POSITIVE = D.POSITIVE, GAMES = D.GAMES, RADIO_GAME = D.RADIO_GAME, DICT_CHIPS = D.DICT_CHIPS;
+  var MEMORY_LEVELS = D.MEMORY_LEVELS, MEMORY_POOL = D.MEMORY_POOL;
 
   var root = document.getElementById('app');
 
@@ -37,7 +38,9 @@
     stageId: 1, exIndex: 0, xp: 0, correct: 0, total: 0, startTime: 0,
     selected: null, placed: [], feedback: null, feedbackTitle: '', revealed: false, finalStats: null,
     speaking: false, toast: null, dictQuery: '', dictCat: 'all',
-    pracView: 'hub', pracSel: null, pracDone: false, pracCelebrate: false
+    pracView: 'hub', pracSel: null, pracDone: false, pracCelebrate: false,
+    memView: 'levels', memLevel: null, memCards: [], memFlipped: [], memMatched: [],
+    memMoves: 0, memSeconds: null, memLocked: false
   };
 
   var gestured = false;
@@ -56,7 +59,7 @@
   function role() { return state.role || 'ctrl'; }
   function rdata() { return state.roleData[role()] || { completed: [], xp: 0 }; }
 
-  var spTimer, toastTimer, celTimer, autoT;
+  var spTimer, toastTimer, celTimer, autoT, memTimer, memFlipTimer;
 
   function speak(text) {
     if (!state.soundOn || !text || !gestured) { setSpeaking(false); return; }
@@ -200,6 +203,7 @@
 
   function openGame(id) {
     if (id === 'radio') setL({ pracView: 'radio', pracSel: null, pracDone: false, pracCelebrate: false });
+    else if (id === 'memory') openMemory();
     else toast('המשחק ייפתח בקרוב 🎮');
   }
   function pracBack() { cancelSpeech(); setL({ pracView: 'hub' }); }
@@ -215,6 +219,109 @@
   }
   function pracReset() { set({ gems: state.gems + 5, pracSel: null, pracDone: false, pracCelebrate: false }); toast('+25 XP · +5 💎 נוספו!'); }
   function switchRole(r) { set({ role: r }); }
+
+  /* ----------------------------- MEMORY GAME ----------------------------- */
+  function shuffleArr(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function openMemory() {
+    clearInterval(memTimer); clearTimeout(memFlipTimer);
+    setL({ pracView: 'memory', memView: 'levels' });
+  }
+
+  function memPickLevel(id) {
+    var lvl = null;
+    for (var i = 0; i < MEMORY_LEVELS.length; i++) if (MEMORY_LEVELS[i].id === id) lvl = MEMORY_LEVELS[i];
+    if (!lvl) return;
+    startMemoryGame(lvl);
+  }
+
+  function startMemoryGame(lvl) {
+    var pool = shuffleArr(MEMORY_POOL).slice(0, lvl.pairs);
+    var cards = [];
+    pool.forEach(function (p, i) {
+      cards.push({ pairId: i, text: p[0] });
+      cards.push({ pairId: i, text: p[1] });
+    });
+    cards = shuffleArr(cards);
+    clearInterval(memTimer); clearTimeout(memFlipTimer);
+    state.memLevel = lvl;
+    state.memView = 'board';
+    state.memCards = cards;
+    state.memFlipped = [];
+    state.memMatched = [];
+    state.memMoves = 0;
+    state.memLocked = false;
+    state.memSeconds = lvl.seconds;
+    if (lvl.seconds) memTimer = setInterval(memoryTick, 1000);
+    render();
+  }
+
+  function memoryTick() {
+    if (state.memSeconds === null) return;
+    state.memSeconds -= 1;
+    if (state.memSeconds <= 0) {
+      state.memSeconds = 0;
+      clearInterval(memTimer);
+      memoryEnd(false);
+      return;
+    }
+    render();
+  }
+
+  function memFlip(idx) {
+    if (state.memView !== 'board' || state.memLocked) return;
+    if (state.memFlipped.indexOf(idx) >= 0 || state.memMatched.indexOf(idx) >= 0) return;
+    if (state.memFlipped.length >= 2) return;
+    state.memFlipped.push(idx);
+    render();
+    if (state.memFlipped.length === 2) {
+      state.memMoves += 1;
+      var a = state.memCards[state.memFlipped[0]];
+      var b = state.memCards[state.memFlipped[1]];
+      state.memLocked = true;
+      var isMatch = a.pairId === b.pairId;
+      clearTimeout(memFlipTimer);
+      memFlipTimer = setTimeout(function () {
+        if (isMatch) {
+          state.memMatched = state.memMatched.concat(state.memFlipped);
+          state.memFlipped = [];
+          state.memLocked = false;
+          if (state.memMatched.length === state.memCards.length) { memoryEnd(true); return; }
+        } else {
+          state.memFlipped = [];
+          state.memLocked = false;
+        }
+        render();
+      }, isMatch ? 450 : 800);
+      render();
+    }
+  }
+
+  function memoryEnd(won) {
+    clearInterval(memTimer);
+    if (won) {
+      playSound('stageComplete');
+      state.gems += 5;
+      toast('כל הכבוד! השלמת/ה את המשחק 🎉 +5 💎');
+    } else {
+      playSound('stageFailed');
+      toast('נגמר הזמן! נסה/י שוב');
+    }
+    setTimeout(function () { setL({ memView: 'levels' }); }, 1300);
+  }
+
+  function memBack() {
+    clearInterval(memTimer); clearTimeout(memFlipTimer);
+    if (state.memView === 'board') setL({ memView: 'levels' });
+    else setL({ pracView: 'hub' });
+  }
 
   /* ----------------------------- TOWER BUILDER ----------------------------- */
   function buildTower(floorsDone, building) {
@@ -438,9 +545,15 @@
   function renderPractice() {
     var hub = document.getElementById('pracHub');
     var radio = document.getElementById('pracRadio');
+    var memory = document.getElementById('pracMemory');
     var isRadio = state.pracView === 'radio';
-    hub.hidden = isRadio; radio.hidden = !isRadio;
-    if (isRadio) renderPracRadio(); else renderPracHub();
+    var isMemory = state.pracView === 'memory';
+    hub.hidden = isRadio || isMemory;
+    radio.hidden = !isRadio;
+    memory.hidden = !isMemory;
+    if (isRadio) renderPracRadio();
+    else if (isMemory) renderMemory();
+    else renderPracHub();
   }
 
   function renderPracHub() {
@@ -509,6 +622,50 @@
       nextBtn.setAttribute('data-act', 'pracReset'); nextBtn.textContent = 'בקשה הבאה';
       fb.appendChild(row); fb.appendChild(nextBtn); footer.appendChild(fb);
     }
+  }
+
+  function renderMemory() {
+    var levelsEl = document.getElementById('memLevels');
+    var boardEl = document.getElementById('memBoard');
+    var isBoard = state.memView === 'board';
+    levelsEl.hidden = isBoard;
+    boardEl.hidden = !isBoard;
+    if (isBoard) renderMemBoard(); else renderMemLevels();
+  }
+
+  function renderMemLevels() {
+    var list = document.getElementById('memLevelsList'); clearEl(list);
+    MEMORY_LEVELS.forEach(function (l) {
+      var row = cloneTpl('tplMemLevel');
+      row.setAttribute('data-a', l.id);
+      row.querySelector('.mem-level__he').textContent = l.he;
+      row.querySelector('.mem-level__sub').textContent = l.sub;
+      row.querySelector('.mem-level__dot').style.background = l.dot;
+      list.appendChild(row);
+    });
+  }
+
+  function renderMemBoard() {
+    var lvl = state.memLevel;
+    var timerChip = document.getElementById('memTimerChip');
+    if (lvl && lvl.seconds) { timerChip.hidden = false; timerChip.textContent = state.memSeconds + 's ⏱'; }
+    else { timerChip.hidden = true; }
+    var total = state.memCards.length;
+    document.getElementById('memStatsLabel').textContent =
+      'זוגות: ' + (state.memMatched.length / 2) + ' · מהלכים: ' + state.memMoves + '/' + (lvl ? lvl.pairs : 0);
+    var pct = total ? Math.round(state.memMatched.length / total * 100) : 0;
+    document.getElementById('memProgressFill').style.width = pct + '%';
+    var grid = document.getElementById('memGrid'); clearEl(grid);
+    state.memCards.forEach(function (c, idx) {
+      var card = cloneTpl('tplMemCard');
+      card.setAttribute('data-a', idx);
+      var isMatched = state.memMatched.indexOf(idx) >= 0;
+      var isFlipped = isMatched || state.memFlipped.indexOf(idx) >= 0;
+      card.classList.toggle('is-flipped', isFlipped);
+      card.classList.toggle('is-matched', isMatched);
+      card.querySelector('.mem-card__text').textContent = c.text;
+      grid.appendChild(card);
+    });
   }
 
   function renderProfile() {
@@ -780,6 +937,9 @@
     if (act === 'openGame')   { openGame(a); return; }
     if (act === 'pracSelect') { pracSelect(parseInt(a, 10)); return; }
     if (act === 'switchRole') { switchRole(a); return; }
+    if (act === 'memPickLevel') { memPickLevel(a); return; }
+    if (act === 'memFlip')      { memFlip(parseInt(a, 10)); return; }
+    if (act === 'pracBack')     { if (state.pracView === 'memory') memBack(); else pracBack(); return; }
     if (ACTS[act]) ACTS[act]();
   });
 

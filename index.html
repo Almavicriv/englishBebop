@@ -149,6 +149,39 @@
         </div>
         <div class="prac-radio__footer" id="pracRadioFooter"></div>
       </div>
+
+      <div class="prac-memory" id="pracMemory" hidden>
+        <!-- sub-view: difficulty levels -->
+        <div class="mem-levels" id="memLevels">
+          <div class="mem-levels__top">
+            <div>
+              <div class="mem-levels__title">זיכרון מונחים</div>
+              <div class="mem-levels__sub">Memory Match · בחר/י רמת קושי</div>
+            </div>
+            <button class="prac-radio__close" data-act="pracBack">✕</button>
+          </div>
+          <div class="atc-scroll mem-levels__scroll">
+            <div class="mem-levels__banner">
+              <div class="mem-levels__banner-eyebrow">🧠 אימון אוצר מילים</div>
+              <div class="mem-levels__banner-text">התאמ/י כל מונח באנגלית למשמעות בעברית — מתוך מאגר המילון</div>
+            </div>
+            <div class="mem-levels__list" id="memLevelsList"></div>
+          </div>
+        </div>
+
+        <!-- sub-view: game board -->
+        <div class="mem-board" id="memBoard" hidden>
+          <div class="mem-board__top">
+            <button class="prac-radio__close" data-act="pracBack">✕</button>
+            <div class="mem-board__progress"><div class="mem-board__progress-fill" id="memProgressFill"></div></div>
+            <div class="mem-board__timer" id="memTimerChip" hidden>—</div>
+          </div>
+          <div class="mem-board__stats" id="memStatsLabel">זוגות: 0 · מהלכים: 0/0</div>
+          <div class="atc-scroll mem-board__scroll">
+            <div class="mem-board__grid" id="memGrid"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ============ SCREEN: profile ============ -->
@@ -368,6 +401,26 @@
 
 <template id="tplSpark"><div class="spark">✨</div></template>
 <template id="tplGem"><div class="gem">💎</div></template>
+
+<template id="tplMemLevel">
+  <button class="mem-level" data-act="memPickLevel">
+    <span class="mem-level__chevron">‹</span>
+    <div class="mem-level__text">
+      <div class="mem-level__he"></div>
+      <div class="mem-level__sub"></div>
+    </div>
+    <span class="mem-level__dot"></span>
+  </button>
+</template>
+
+<template id="tplMemCard">
+  <button class="mem-card" data-act="memFlip">
+    <div class="mem-card__inner">
+      <div class="mem-card__face mem-card__face--front">✈️</div>
+      <div class="mem-card__face mem-card__face--back"><span class="mem-card__text"></span></div>
+    </div>
+  </button>
+</template>
 
 <script src="data.js"></script>
 <script src="app.js"></script>

@@ -167,6 +167,41 @@
     opts: [['Cleared to land runway 26', 1], ['Maintain current altitude', 0], ['Contact ground frequency', 0], ['Taxi to holding point', 0]]
   };
 
+  /* ---- משחק זיכרון מונחים: רמות קושי ---- */
+  var MEMORY_LEVELS = [
+    { id: 'easy',   he: 'קל',    sub: '6 זוגות · ללא טיימר', pairs: 6,  seconds: null, dot: '#2E9E5B' },
+    { id: 'medium', he: 'בינוני', sub: '8 זוגות · 90 שניות',  pairs: 8,  seconds: 90,   dot: '#F2A100' },
+    { id: 'hard',   he: 'קשה',   sub: '12 זוגות · 60 שניות', pairs: 12, seconds: 60,   dot: '#E5484D' }
+  ];
+
+  /* ---- מאגר צמדי מונחים (אנגלית/עברית) למשחק הזיכרון ---- */
+  var MEMORY_POOL = [
+    ['Say again', 'אמור שנית'],
+    ['Roger', 'קיבלתי'],
+    ['Affirm', 'חיובי'],
+    ['Negative', 'שלילי'],
+    ['Standby', 'מיד אתך'],
+    ['Disregard', 'התעלם'],
+    ['Unable', 'לא מסוגל'],
+    ['Readback', 'חזור על'],
+    ['Climb', 'טפס'],
+    ['Descend', 'הנמך'],
+    ['Maintain', 'שמור'],
+    ['Taxi', 'הסע'],
+    ['Hold short', 'עצור לפני'],
+    ['Cleared to land', 'רשאי לנחות'],
+    ['Go around', 'לך סביב'],
+    ['Traffic', 'תנועה'],
+    ['Wind calm', 'רוח קלה'],
+    ['QNH', 'לחץ ברומטרי'],
+    ['Visibility', 'ראות'],
+    ['Overcast', 'שמים מכוסים'],
+    ['Mayday', 'מצוקה'],
+    ['Pan-Pan', 'תקלה'],
+    ['Vacate the runway', 'פנה את המסלול'],
+    ['Line up and wait', 'התיישר והמתן']
+  ];
+
   var DICT_CHIPS = [
     ['all','הכל'],['numbers','מספרים'],['proc','נהלים'],['inst','הוראות'],
     ['traffic','תנועה'],['wx','מזג אוויר'],['emer','חירום'],['read','בדיקת קשר']
@@ -176,6 +211,7 @@
     metaList: metaList, stages: stages,
     PRON: PRON, READ: READ, CATS: CATS,
     roleInfo: roleInfo, POSITIVE: POSITIVE,
-    GAMES: GAMES, RADIO_GAME: RADIO_GAME, DICT_CHIPS: DICT_CHIPS
+    GAMES: GAMES, RADIO_GAME: RADIO_GAME, DICT_CHIPS: DICT_CHIPS,
+    MEMORY_LEVELS: MEMORY_LEVELS, MEMORY_POOL: MEMORY_POOL
   };
 })();
