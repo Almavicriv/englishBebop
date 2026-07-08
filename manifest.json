@@ -1,0 +1,18 @@
+{
+  "name": "אפליקציה ללימוד אנגלית תעופתית לבקרים ופקחים",
+  "short_name": "אנגלית תעופתית",
+  "icons": [
+    {
+      "src": "assets/homeLogo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/homeLogo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone"
+}
