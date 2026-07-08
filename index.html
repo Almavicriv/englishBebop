@@ -44,9 +44,10 @@
         <button class="btn-login" data-act="enter">
           כניסה
         </button>
-           <div class="credits landing-credits">פותח ע"י יחידת שה"ד 339  
+           <div class="credits landing-credits">פותח ע"י 
           רב"ט רעות שמר, אע"צ ניר לוי ורב"ט עלמה ויקטור ריבלין <br>
-        מפקדת הגף: סגן בר עם שלם, מפקד היחידה: אע"צ ליאור אדלר </div>
+        מפקדת הגף: סגן בר עם שלם, מפקד היחידה: אע"צ ליאור אדלר 
+      </div>
       </div>
     </section>
 
@@ -215,11 +216,17 @@
               <span class="profile__setting-icon">🔊</span>
               <span class="profile__setting-label">קריינות קולית</span>
               <span class="switch" id="soundSwitch"><span class="switch__knob"></span></span>
+              </button>
+              <button class="profile__setting" data-act="showInstall">
+                <span class="profile__setting-icon">📲</span>
+                <span class="profile__setting-label">איך מוסיפים למסך הבית</span>
+                <span class="profile__setting-chevron">›</span>
+              </button>
             </button>
           </div>
         </div>
       </div>
-      <div class="credits">פותח ע"י צוות תכנות יחידת שה"ד 339<br>
+      <div class="credits">פותח ע"י צוות תכנות 2026 יחידת שה"ד 339<br>
         רב"ט רעות שמר, אע"צ ניר לוי ורב"ט עלמה ויקטור ריבלין <br>
         מפקדת גף אנימציה: סגן בר עם שלם <br> מפקד היחידה: אע"צ ליאור אדלר
       </div>
@@ -439,5 +446,32 @@
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+
+<div class="install-modal" id="installModal" hidden>
+  <div class="install-modal__card">
+    <button class="install-modal__close" data-act="closeInstall">✕</button>
+    <h2 class="install-modal__title">הוספה למסך הבית</h2>
+
+    <div class="install-modal__section">
+      <div class="install-modal__badge">iPhone (Safari)</div>
+      <ol class="install-modal__steps">
+        <li>פתחו את האתר בדפדפן <strong>Safari</strong></li>
+        <li>הקישו על כפתור השיתוף <strong>⬆️</strong> בתחתית המסך</li>
+        <li>גללו ובחרו <strong>"הוסף למסך הבית"</strong></li>
+        <li>הקישו <strong>"הוסף"</strong> בפינה</li>
+      </ol>
+    </div>
+
+    <div class="install-modal__section">
+      <div class="install-modal__badge">Android (Chrome)</div>
+      <ol class="install-modal__steps">
+        <li>פתחו את האתר בדפדפן <strong>Chrome</strong></li>
+        <li>הקישו על שלוש הנקודות <strong>⋮</strong> בפינה הימנית העליונה</li>
+        <li>בחרו <strong>"הוספה למסך הבית"</strong></li>
+        <li>אשרו על ידי הקשה על <strong>"הוסף"</strong></li>
+      </ol>
+    </div>
+  </div>
+</div>
 </body>
 </html>

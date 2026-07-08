@@ -952,18 +952,22 @@
   function wireCloseButtons() {
     var radioClose = document.getElementById('pracRadioCloseBtn');
     if (radioClose) radioClose.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); pracBack(); });
-    var memLevelsClose = document.getElementById('memLevelsCloseBtn');
+    var memLevelsClose = document .getElementById('memLevelsCloseBtn');
     if (memLevelsClose) memLevelsClose.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); memBack(); });
     var memBoardClose = document.getElementById('memBoardCloseBtn');
     if (memBoardClose) memBoardClose.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); memBack(); });
   }
   wireCloseButtons();
 
+  function showInstall() { document.getElementById('installModal').hidden = false; }
+  function closeInstall() { document.getElementById('installModal').hidden = true; }
+
   var ACTS = {
     enter: enter, start: startWelcome, confirmRole: confirmRole,
     toggleSound: toggleSound, check: check, next: next, reveal: reveal,
     goHome: goHome, closeLesson: goHome,
-    pracBack: pracBack, pracCheck: pracCheck, pracReset: pracReset
+    pracBack: pracBack, pracCheck: pracCheck, pracReset: pracReset,
+    showInstall: showInstall, closeInstall: closeInstall
   };
 
   document.addEventListener('click', function (e) {
