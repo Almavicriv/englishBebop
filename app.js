@@ -52,6 +52,7 @@
     streak: 0, gems: 0, soundOn: true,
     stageId: 1, exIndex: 0, xp: 0, correct: 0, total: 0, startTime: 0,
     selected: null, placed: [], feedback: null, feedbackTitle: '', revealed: false, finalStats: null,
+    exStates: [],
     speaking: false, toast: null, dictQuery: '', dictCat: 'all',
     pracView: 'hub', pracSel: null, pracDone: false, pracCelebrate: false,
     memView: 'levels', memLevel: null, memCards: [], memFlipped: [], memMatched: [],
@@ -158,7 +159,8 @@
     var st = stages[id];
     if (!st) { toast('השלב יהיה זמין בקרוב ✈'); return; }
     setL({ screen: 'lesson', stageId: id, exIndex: 0, xp: 0, correct: 0, total: 0,
-      startTime: Date.now(), selected: null, placed: [], feedback: null, revealed: false });
+      startTime: Date.now(), selected: null, placed: [], feedback: null, revealed: false,
+      exStates: new Array(st.exercises.length).fill(null) });
     autoSpeak();
   }
 
@@ -192,6 +194,7 @@
   }
 
   function next() {
+    saveCurrentExState();
     var exs = stages[state.stageId].exercises; var ni = state.exIndex + 1;
     if (ni >= exs.length) {
       var secs = Math.max(1, Math.round((Date.now() - state.startTime) / 1000));
@@ -216,6 +219,41 @@
 
   function goHome() { cancelSpeech(); setL({ screen: 'home', tab: 'home', feedback: null, speaking: false }); }
   function autoSpeak() { var ex = curEx(); clearTimeout(autoT); autoT = setTimeout(function () { speak(exVoice(ex)); }, 360); }
+
+  function saveCurrentExState() {
+    state.exStates[state.exIndex] = {
+      selected: state.selected,
+      placed: state.placed.slice(),
+      feedback: state.feedback,
+      feedbackTitle: state.feedbackTitle,
+      revealed: state.revealed
+    };
+  }
+
+  function navPrev() {
+    if (state.exIndex === 0) return;
+    saveCurrentExState();
+    var ni = state.exIndex - 1;
+    var saved = state.exStates[ni];
+    var patch = { exIndex: ni, selected: null, placed: [], feedback: null, feedbackTitle: '', revealed: false };
+    if (saved) { patch.selected = saved.selected; patch.placed = saved.placed.slice(); patch.feedback = saved.feedback; patch.feedbackTitle = saved.feedbackTitle; patch.revealed = saved.revealed; }
+    cancelSpeech();
+    setL(patch);
+    if (!patch.feedback) autoSpeak();
+  }
+
+  function navNext() {
+    var exs = stages[state.stageId].exercises;
+    if (state.exIndex >= exs.length - 1) return;
+    saveCurrentExState();
+    var ni = state.exIndex + 1;
+    var saved = state.exStates[ni];
+    var patch = { exIndex: ni, selected: null, placed: [], feedback: null, feedbackTitle: '', revealed: false };
+    if (saved) { patch.selected = saved.selected; patch.placed = saved.placed.slice(); patch.feedback = saved.feedback; patch.feedbackTitle = saved.feedbackTitle; patch.revealed = saved.revealed; }
+    cancelSpeech();
+    setL(patch);
+    if (!patch.feedback) autoSpeak();
+  }
 
   function openGame(id) {
     if (id === 'memory') openMemory();
@@ -773,6 +811,10 @@
 
   function buildExerciseDnd(ex) {
     var wrap = document.createElement('div');
+    var replayRow = document.createElement('div'); replayRow.className = 'exercise-dnd__replay-row';
+    var play = document.createElement('button'); play.className = 'exercise-mcq__play';
+    play.setAttribute('data-act', 'speak'); play.setAttribute('data-speak', fillSentence(ex)); play.textContent = '🔊';
+    replayRow.appendChild(play); wrap.appendChild(replayRow);
     var sentence = document.createElement('div'); sentence.className = 'exercise-dnd__sentence';
     var tx = document.createElement('div'); tx.className = 'exercise-dnd__tx'; tx.textContent = '● TX';
     sentence.appendChild(tx);
@@ -884,29 +926,40 @@
       var btn = document.createElement('button');
       btn.className = 'check-btn' + (canCheck() ? ' is-enabled' : '');
       btn.setAttribute('data-act', 'check'); btn.textContent = 'בדוק/י';
-      footer.appendChild(btn); return;
+      footer.appendChild(btn);
+    } else {
+      var ok = state.feedback === 'ok';
+      var correctText = '';
+      if (ex.type === 'mcq') { for (var ci = 0; ci < ex.opts.length; ci++) if (ex.opts[ci][1]) correctText = ex.opts[ci][0]; }
+      else if (ex.type === 'dnd') correctText = ex.answer.join('  ·  ');
+      else if (ex.type === 'listen' && ex.template) correctText = ex.answer.join('  ·  ');
+      footer.classList.add('lesson-feedback', ok ? 'is-ok' : 'is-no');
+      var row = document.createElement('div'); row.className = 'lesson-feedback__row';
+      var icon = document.createElement('div'); icon.className = 'lesson-feedback__icon ' + (ok ? 'is-ok' : 'is-no'); icon.textContent = ok ? '✓' : '!';
+      var textWrap = document.createElement('div'); textWrap.className = 'lesson-feedback__text';
+      var title = document.createElement('div'); title.className = 'lesson-feedback__title ' + (ok ? 'is-ok' : 'is-no'); title.textContent = state.feedbackTitle;
+      textWrap.appendChild(title);
+      if (!ok && (ex.type !== 'listen' || ex.template)) { var corr = document.createElement('div'); corr.className = 'lesson-feedback__correct'; corr.textContent = correctText; textWrap.appendChild(corr); }
+      row.appendChild(icon); row.appendChild(textWrap);
+      var tip = document.createElement('div'); tip.className = 'lesson-feedback__tip';
+      var tipIcon = document.createElement('span'); tipIcon.className = 'lesson-feedback__tip-icon'; tipIcon.textContent = '💡';
+      var tipText = document.createElement('span'); tipText.textContent = ex.tip;
+      tip.appendChild(tipIcon); tip.appendChild(tipText);
+      var nextBtn = document.createElement('button');
+      nextBtn.className = 'lesson-feedback__next ' + (ok ? 'is-ok' : 'is-no');
+      nextBtn.setAttribute('data-act', 'next'); nextBtn.textContent = 'המשך/י';
+      footer.appendChild(row); footer.appendChild(tip); footer.appendChild(nextBtn);
     }
-    var ok = state.feedback === 'ok';
-    var correctText = '';
-    if (ex.type === 'mcq') { for (var ci = 0; ci < ex.opts.length; ci++) if (ex.opts[ci][1]) correctText = ex.opts[ci][0]; }
-    else if (ex.type === 'dnd') correctText = ex.answer.join('  ·  ');
-    else if (ex.type === 'listen' && ex.template) correctText = ex.answer.join('  ·  ');
-    footer.classList.add('lesson-feedback', ok ? 'is-ok' : 'is-no');
-    var row = document.createElement('div'); row.className = 'lesson-feedback__row';
-    var icon = document.createElement('div'); icon.className = 'lesson-feedback__icon ' + (ok ? 'is-ok' : 'is-no'); icon.textContent = ok ? '✓' : '!';
-    var textWrap = document.createElement('div'); textWrap.className = 'lesson-feedback__text';
-    var title = document.createElement('div'); title.className = 'lesson-feedback__title ' + (ok ? 'is-ok' : 'is-no'); title.textContent = state.feedbackTitle;
-    textWrap.appendChild(title);
-    if (!ok && (ex.type !== 'listen' || ex.template)) { var corr = document.createElement('div'); corr.className = 'lesson-feedback__correct'; corr.textContent = correctText; textWrap.appendChild(corr); }
-    row.appendChild(icon); row.appendChild(textWrap);
-    var tip = document.createElement('div'); tip.className = 'lesson-feedback__tip';
-    var tipIcon = document.createElement('span'); tipIcon.className = 'lesson-feedback__tip-icon'; tipIcon.textContent = '💡';
-    var tipText = document.createElement('span'); tipText.textContent = ex.tip;
-    tip.appendChild(tipIcon); tip.appendChild(tipText);
-    var nextBtn = document.createElement('button');
-    nextBtn.className = 'lesson-feedback__next ' + (ok ? 'is-ok' : 'is-no');
-    nextBtn.setAttribute('data-act', 'next'); nextBtn.textContent = 'המשך/י';
-    footer.appendChild(row); footer.appendChild(tip); footer.appendChild(nextBtn);
+    var exs = stages[state.stageId].exercises;
+    var nav = document.createElement('div'); nav.className = 'lesson-nav';
+    var prevBtn = document.createElement('button'); prevBtn.className = 'lesson-nav__btn';
+    prevBtn.setAttribute('data-act', 'navPrev'); prevBtn.textContent = '▶ הקודם';
+    if (state.exIndex === 0) prevBtn.disabled = true;
+    var nextNavBtn = document.createElement('button'); nextNavBtn.className = 'lesson-nav__btn';
+    nextNavBtn.setAttribute('data-act', 'navNext'); nextNavBtn.textContent = 'הבא ◀';
+    if (state.exIndex >= exs.length - 1 || !state.feedback) nextNavBtn.disabled = true;
+    nav.appendChild(prevBtn); nav.appendChild(nextNavBtn);
+    footer.appendChild(nav);
   }
 
   function renderComplete() {
@@ -965,6 +1018,7 @@
   var ACTS = {
     enter: enter, start: startWelcome, confirmRole: confirmRole,
     toggleSound: toggleSound, check: check, next: next, reveal: reveal,
+    navPrev: navPrev, navNext: navNext,
     goHome: goHome, closeLesson: goHome,
     pracBack: pracBack, pracCheck: pracCheck, pracReset: pracReset,
     showInstall: showInstall, closeInstall: closeInstall

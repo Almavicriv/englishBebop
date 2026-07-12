@@ -1057,6 +1057,20 @@ img {
 .lesson-feedback__next.is-ok { background: #2E9E5B; box-shadow: 0 0.313rem 0 #1f7a45; }
 .lesson-feedback__next.is-no { background: #E5484D; box-shadow: 0 0.313rem 0 #b5363a; }
 
+.lesson-nav {
+  display: flex; gap: 0.625rem; margin-top: 0.75rem;
+}
+.lesson-nav__btn {
+  flex: 1; padding: 0.625rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700;
+  background: #E1E8F0; color: #46566a; cursor: pointer; transition: background 0.15s;
+}
+.lesson-nav__btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.lesson-nav__btn:not(:disabled):hover { background: #CBD7E3; }
+
+.exercise-dnd__replay-row {
+  display: flex; margin-bottom: 0.75rem;
+} 
+
 /* =====================================================================
    SCREEN: complete
    ===================================================================== */
