@@ -1,12 +1,12 @@
 /* =====================================================================
-   ATC English Trainer - app logic
+   ATC English Trainer - app logic (role-aware content)
    ===================================================================== */
 (function () {
   'use strict';
 
   var D = window.ATC_DATA;
-  var metaList = D.metaList, stages = D.stages, PRON = D.PRON, READ = D.READ, CATS = D.CATS;
-  var roleInfo = D.roleInfo, POSITIVE = D.POSITIVE, GAMES = D.GAMES, RADIO_GAME = D.RADIO_GAME, DICT_CHIPS = D.DICT_CHIPS;
+  var PRON = D.PRON, READ = D.READ;
+  var roleInfo = D.roleInfo, POSITIVE = D.POSITIVE, GAMES = D.GAMES, RADIO_GAME = D.RADIO_GAME;
   var MEMORY_LEVELS_FALLBACK = [
     { id: 'easy',   he: 'קל',    sub: '6 זוגות · ללא טיימר', pairs: 6,  seconds: null, dot: '#2E9E5B' },
     { id: 'medium', he: 'בינוני', sub: '8 זוגות · 90 שניות',  pairs: 8,  seconds: 90,   dot: '#F2A100' },
@@ -22,7 +22,26 @@
     ['Vacate the runway', 'פנה את המסלול'], ['Line up and wait', 'התיישר והמתן']
   ];
   var MEMORY_LEVELS = (D.MEMORY_LEVELS && D.MEMORY_LEVELS.length) ? D.MEMORY_LEVELS : MEMORY_LEVELS_FALLBACK;
-  var MEMORY_POOL = (D.MEMORY_POOL && D.MEMORY_POOL.length) ? D.MEMORY_POOL : MEMORY_POOL_FALLBACK;
+
+  /* ---- תוכן תלוי-תפקיד: כל אחת מהפונקציות הבאות מחזירה את המידע השייך
+     לתפקיד הנוכחי (בקר/פקח) בהתאם ל-role() הפעיל ---- */
+  function curMetaList()  { return (D.metaListByRole && D.metaListByRole[role()]) || D.metaList; }
+  function curStagesMap() { return (D.stagesByRole && D.stagesByRole[role()]) || D.stages; }
+  function curCATS()      { return (D.CATSByRole && D.CATSByRole[role()]) || D.CATS; }
+  function curDictChips()  { return (D.DICT_CHIPSByRole && D.DICT_CHIPSByRole[role()]) || D.DICT_CHIPS; }
+  function curMemoryPool() {
+    var p = (D.MEMORY_POOLByRole && D.MEMORY_POOLByRole[role()]) || D.MEMORY_POOL;
+    return (p && p.length) ? p : MEMORY_POOL_FALLBACK;
+  }
+
+  /* ---- מספר השלבים הכולל (ללא המבחן המסכם) - תלוי מסלול, לא קבוע ---- */
+  function totalStepsForRole(r) {
+    var ml = (D.metaListByRole && D.metaListByRole[r]) || D.metaList || [];
+    var count = 0;
+    for (var i = 0; i < ml.length; i++) { if (!ml[i].final) count++; }
+    return count;
+  }
+  function curTotalSteps() { return totalStepsForRole(role()); }
 
   var root = document.getElementById('app');
 
@@ -75,7 +94,7 @@
   function role() { return state.role || 'ctrl'; }
   function rdata() { return state.roleData[role()] || { completed: [], xp: 0 }; }
 
-  var spTimer, toastTimer, celTimer, autoT, memTimer, memFlipTimer;
+  var spTimer, toastTimer, celTimer, autoT, memTimer, memFlipTimer, flightMapTimer;
 
   function speak(text) {
     if (!state.soundOn || !text || !gestured) { setSpeaking(false); return; }
@@ -102,24 +121,45 @@
 
   function curId() {
     var done = rdata().completed;
-    for (var i = 0; i < metaList.length; i++) {
-      var m = metaList[i];
-      if (stages[m.id] && done.indexOf(m.id) < 0) return m.id;
+    var ml = curMetaList(); var stg = curStagesMap();
+    for (var i = 0; i < ml.length; i++) {
+      var m = ml[i];
+      if (stg[m.id] && done.indexOf(m.id) < 0) return m.id;
     }
     return null;
   }
-  function curEx() { return stages[state.stageId].exercises[state.exIndex]; }
+  function curEx() { return curStagesMap()[state.stageId].exercises[state.exIndex]; }
 
   function exVoice(ex) {
     if (ex.type === 'listen') return ex.audio;
     if (ex.type === 'dnd') return fillSentence(ex);
-    return ex.en || '';
+    return maskPronunciationAudio(ex.en) || '';
   }
 
   function fillSentence(ex) {
     var parts = ex.template.split('__'); var out = '';
     for (var i = 0; i < parts.length; i++) { out += parts[i]; if (i < ex.answer.length) out += ex.answer[i]; }
     return out.replace(/\s+/g, ' ').trim();
+  }
+
+  /* ---- מיסוך TTS: בשאלות "כיצד הוגים/קוראים/משדרים X" אין להקריא את המילה/המספר
+     המבוקש בעצמו (זה בדיוק התשובה) - הטקסט המוצג על המסך נשאר שלם,
+     רק תוכן האודיו (מה שנשלח ל-speechSynthesis) מוחלף ב-"..." ---- */
+  function maskPronunciationAudio(text) {
+    if (!text) return text;
+    var cueRe = /(pronounce|pronunciation|spelled|spell|how do you read|how is it transmitted|how do you transmit)/i;
+    if (!cueRe.test(text)) return text;
+    if (/"[^"]+"/.test(text)) {
+      return text.replace(/"[^"]+"/g, '"..."');
+    }
+    if (/\d[\d,.:]*\d|\b\d\b/.test(text)) {
+      return text.replace(/\d[\d,.:]*\d|\b\d\b/g, '...');
+    }
+    var wordMatch = text.match(/\b(?:number|digit|word)\s+["']?([A-Za-z0-9]+)["']?/i);
+    if (wordMatch) {
+      return text.replace(wordMatch[1], '...');
+    }
+    return text;
   }
 
   function canCheck() {
@@ -156,7 +196,7 @@
   function toggleSound() { set({ soundOn: !state.soundOn }); }
 
   function startStage(id) {
-    var st = stages[id];
+    var st = curStagesMap()[id];
     if (!st) { toast('השלב יהיה זמין בקרוב ✈'); return; }
     setL({ screen: 'lesson', stageId: id, exIndex: 0, xp: 0, correct: 0, total: 0,
       startTime: Date.now(), selected: null, placed: [], feedback: null, revealed: false,
@@ -195,22 +235,25 @@
 
   function next() {
     saveCurrentExState();
-    var exs = stages[state.stageId].exercises; var ni = state.exIndex + 1;
+    var exs = curStagesMap()[state.stageId].exercises; var ni = state.exIndex + 1;
     if (ni >= exs.length) {
       var secs = Math.max(1, Math.round((Date.now() - state.startTime) / 1000));
       var mm = Math.floor(secs / 60), ss = String(secs % 60); if (ss.length < 2) ss = '0' + ss;
       var acc = state.total ? Math.round(state.correct / state.total * 100) : 0;
       var passed = acc >= 50;
       var r = role(); var rd = rdata();
+      var beforeCount = rd.completed.length;
       var completed = (passed && rd.completed.indexOf(state.stageId) < 0)
         ? rd.completed.concat([state.stageId]) : rd.completed;
+      var afterCount = completed.length;
       var roleData = Object.assign({}, state.roleData);
       roleData[r] = { completed: completed, xp: rd.xp + state.xp };
       if (passed) { playSound('stageComplete'); }
       else        { playSound('stageFailed');   }
       set({ screen: 'complete', roleData: roleData,
         gems: state.gems + (passed ? 5 : 0),
-        finalStats: { xp: state.xp, acc: acc, time: mm + ':' + ss, passed: passed } });
+        finalStats: { xp: state.xp, acc: acc, time: mm + ':' + ss, passed: passed,
+          progressBefore: beforeCount, progressAfter: afterCount } });
     } else {
       setL({ exIndex: ni, selected: null, placed: [], feedback: null, revealed: false });
       autoSpeak();
@@ -243,7 +286,7 @@
   }
 
   function navNext() {
-    var exs = stages[state.stageId].exercises;
+    var exs = curStagesMap()[state.stageId].exercises;
     if (state.exIndex >= exs.length - 1) return;
     saveCurrentExState();
     var ni = state.exIndex + 1;
@@ -271,7 +314,11 @@
     render();
   }
   function pracReset() { set({ gems: state.gems + 5, pracSel: null, pracDone: false, pracCelebrate: false }); toast('+25 XP · +5 💎 נוספו!'); }
-  function switchRole(r) { set({ role: r }); }
+
+  /* ---- מעבר תפקיד: מאפס תצוגות שתלויות בתוכן התפקיד הקודם (מילון/הקפה) ---- */
+  function switchRole(r) {
+    set({ role: r, dictCat: 'all', dictQuery: '', pracView: 'hub', memView: 'levels' });
+  }
 
   /* ----------------------------- MEMORY GAME ----------------------------- */
   function shuffleArr(arr) {
@@ -300,7 +347,7 @@
   }
 
   function startMemoryGame(lvl) {
-    var pool = shuffleArr(MEMORY_POOL).slice(0, lvl.pairs);
+    var pool = shuffleArr(curMemoryPool()).slice(0, lvl.pairs);
     var cards = [];
     pool.forEach(function (p, i) {
       cards.push({ pairId: i, text: p[0] });
@@ -380,7 +427,7 @@
   }
 
   /* ----------------------------- TOWER BUILDER ----------------------------- */
-  function buildTower(floorsDone, building) {
+  function buildTower(floorsDone, building, maxSteps) {
     var wrap = document.createElement('div'); wrap.className = 'tower';
     var beacon = document.createElement('div'); beacon.className = 'tower__beacon';
     var beaconLight = document.createElement('div'); beaconLight.className = 'tower__beacon-light';
@@ -390,7 +437,8 @@
     var cabWindow = document.createElement('div'); cabWindow.className = 'tower__cab-window';
     cab.appendChild(cabWindow);
     var floors = document.createElement('div'); floors.className = 'tower__floors';
-    var total = Math.max(0, Math.min(10, floorsDone));
+    var cap = (typeof maxSteps === 'number' && maxSteps > 0) ? maxSteps : 10;
+    var total = Math.max(0, Math.min(cap, floorsDone));
     for (var i = 1; i <= total; i++) {
       var fl = cloneTpl('tplTowerFloor');
       if (building && i === total) fl.classList.add('is-new');
@@ -419,6 +467,138 @@
       inner = '<path d="M34 4 16 32h12l-4 24 22-30H32z" fill="#FFD86B" stroke="' + accent + '" stroke-width="2.8" stroke-linejoin="round"/><circle cx="48" cy="12" r="2.5" fill="' + accent + '"/><circle cx="12" cy="46" r="2.5" fill="' + accent + '"/>';
     }
     svg.innerHTML = inner;
+    return svg;
+  }
+
+  /* ----------------------------- FLIGHT MAP (stage-complete) -----------------------------
+     קו טיסה מקווק ופין לכל שלב, מצוירים ב-SVG שקוף שיושב מעל גרפיקת מפת העולם
+     האמיתית (רקע CSS, לא בתוך תיבה). ה-viewBox קבוע ומתוח ל-100% רוחב, כך שכל
+     הפינים תמיד נראים בבת אחת בלי גלילה - גם ב-10 שלבים וגם ב-14. המטוס הוא
+     תמונה אמיתית (assets/planeIcon.png), גולש עם הטיה מהפין הקודם לחדש. ---------------------------- */
+  var FM_VB_W = 261, FM_VB_H = 130, FM_PAD = 20, FM_AMP = 22; /* יחס 744:371 של assets/worldMapBg.png */
+  var PLANE_W = 34, PLANE_H = 16.1; // אותו יחס רוחב-גובה של assets/planeIcon.png
+
+  function fmSmoothPath(points) {
+    if (points.length < 2) return '';
+    var d = 'M ' + points[0].x + ' ' + points[0].y;
+    for (var i = 0; i < points.length - 1; i++) {
+      var p0 = points[i - 1] || points[i];
+      var p1 = points[i];
+      var p2 = points[i + 1];
+      var p3 = points[i + 2] || p2;
+      var c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      var c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ' C ' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ', ' + c2x.toFixed(1) + ' ' + c2y.toFixed(1) + ', ' + p2.x + ' ' + p2.y;
+    }
+    return d;
+  }
+
+  function fmPlaneGroup() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var g = document.createElementNS(ns, 'g');
+    g.setAttribute('class', 'complete__flightmap-plane');
+    var img = document.createElementNS(ns, 'image');
+    img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', 'assets/planeIcon.png');
+    img.setAttribute('href', 'assets/planeIcon.png');
+    img.setAttribute('x', -PLANE_W / 2); img.setAttribute('y', -PLANE_H / 2);
+    img.setAttribute('width', PLANE_W); img.setAttribute('height', PLANE_H);
+    g.appendChild(img);
+    return g;
+  }
+
+  function buildFlightMap(prevCount, newCount, total) {
+    var ns = 'http://www.w3.org/2000/svg';
+    total = Math.max(1, total || 1);
+    prevCount = Math.max(0, Math.min(prevCount || 0, total));
+    newCount = Math.max(0, Math.min(newCount || 0, total));
+
+    var gap = total > 1 ? (FM_VB_W - FM_PAD * 2) / (total - 1) : 0;
+    var pts = [];
+    for (var i = 0; i < total; i++) {
+      pts.push({ x: FM_PAD + i * gap, y: FM_VB_H / 2 + Math.sin(i * 0.85) * FM_AMP });
+    }
+
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + FM_VB_W + ' ' + FM_VB_H);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+    var full = document.createElementNS(ns, 'path');
+    full.setAttribute('d', fmSmoothPath(pts));
+    full.setAttribute('fill', 'none'); full.setAttribute('stroke', '#ffffff');
+    full.setAttribute('stroke-opacity', '0.75'); full.setAttribute('stroke-width', '1.6');
+    full.setAttribute('stroke-dasharray', '1 6'); full.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(full);
+
+    if (newCount > 0) {
+      var doneSeg = document.createElementNS(ns, 'path');
+      doneSeg.setAttribute('d', fmSmoothPath(pts.slice(0, newCount)));
+      doneSeg.setAttribute('fill', 'none'); doneSeg.setAttribute('stroke', '#2E9E5B');
+      doneSeg.setAttribute('stroke-width', '2'); doneSeg.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(doneSeg);
+    }
+
+    pts.forEach(function (p, idx) {
+      var done = idx < newCount;
+      var isNew = idx === newCount - 1;
+      var isDestination = idx === total - 1;
+      var g = document.createElementNS(ns, 'g');
+      g.setAttribute('id', 'fm-pin-' + idx);
+
+      if (isDestination) {
+        var halo = document.createElementNS(ns, 'circle');
+        halo.setAttribute('cx', p.x); halo.setAttribute('cy', p.y); halo.setAttribute('r', '11');
+        halo.setAttribute('fill', 'none'); halo.setAttribute('stroke', '#F2A100');
+        halo.setAttribute('stroke-width', '1.2'); halo.setAttribute('stroke-dasharray', '2.5 3');
+        halo.setAttribute('opacity', done ? '0.85' : '0.5');
+        g.appendChild(halo);
+      }
+
+      var c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx', p.x); c.setAttribute('cy', p.y);
+      c.setAttribute('r', isDestination ? 7.4 : (isNew ? 6.2 : 4.3));
+      c.setAttribute('fill', done ? '#2E9E5B' : (isDestination ? '#0E2A47' : 'rgba(255,255,255,.65)'));
+      c.setAttribute('stroke', isNew ? '#F2A100' : (isDestination ? '#F2A100' : '#ffffff'));
+      c.setAttribute('stroke-width', isNew || isDestination ? 1.7 : 1);
+      if (isNew) c.setAttribute('class', 'complete__flightmap-pin-new');
+      g.appendChild(c);
+
+      if (done) {
+        var check = document.createElementNS(ns, 'path');
+        check.setAttribute('d', 'M ' + (p.x - 2.2) + ' ' + p.y + ' l 1.3 1.6 l 2.8 -3.4');
+        check.setAttribute('stroke', '#fff'); check.setAttribute('stroke-width', '1.1');
+        check.setAttribute('fill', 'none'); check.setAttribute('stroke-linecap', 'round'); check.setAttribute('stroke-linejoin', 'round');
+        g.appendChild(check);
+      } else if (isDestination) {
+        var flagPole = document.createElementNS(ns, 'path');
+        flagPole.setAttribute('d', 'M ' + p.x + ' ' + (p.y - 16) + ' L ' + p.x + ' ' + (p.y - 4));
+        flagPole.setAttribute('stroke', '#fff'); flagPole.setAttribute('stroke-width', '1');
+        g.appendChild(flagPole);
+        var flag = document.createElementNS(ns, 'text');
+        flag.setAttribute('x', p.x + 0.5); flag.setAttribute('y', p.y - 10.5);
+        flag.setAttribute('font-size', '9.5'); flag.textContent = '🏁';
+        g.appendChild(flag);
+      }
+      svg.appendChild(g);
+    });
+
+    var startPt = pts[Math.max(0, prevCount - 1)] || pts[0];
+    var endPt = pts[Math.max(0, newCount - 1)] || pts[0];
+    var refPt = pts[Math.max(0, prevCount - 2)] || startPt;
+    var heading = Math.atan2(endPt.y - startPt.y, endPt.x - startPt.x) * 180 / Math.PI;
+    if (startPt === endPt) heading = Math.atan2(startPt.y - refPt.y, startPt.x - refPt.x) * 180 / Math.PI;
+
+    var plane = fmPlaneGroup();
+    plane.style.transform = 'translate(' + startPt.x + 'px,' + startPt.y + 'px) rotate(0deg)';
+    plane.style.transition = 'none';
+    svg.appendChild(plane);
+
+    clearTimeout(flightMapTimer);
+    flightMapTimer = setTimeout(function () {
+      plane.style.transition = 'transform 900ms cubic-bezier(.4,0,.2,1)';
+      plane.style.transform = 'translate(' + endPt.x + 'px,' + endPt.y + 'px) rotate(' + heading + 'deg)';
+      setTimeout(function () { plane.style.transform = 'translate(' + endPt.x + 'px,' + endPt.y + 'px) rotate(0deg)'; }, 950);
+    }, 500);
+
     return svg;
   }
 
@@ -505,24 +685,32 @@
   }
 
   function renderHome() {
+    var metaList = curMetaList(); var stagesMap = curStagesMap();
     var cur = curId();
     var done = rdata().completed;
     var floorsDone = done.length;
-    document.getElementById('homeFloorsCount').textContent = floorsDone + '/10';
+    var totalSteps = curTotalSteps();
+    document.getElementById('homeFloorsCount').textContent = floorsDone + '/' + totalSteps;
     var visual = document.getElementById('towerCardVisual');
-    clearEl(visual); visual.appendChild(buildTower(floorsDone, false));
+    clearEl(visual);
+    var visualImg = document.createElement('img');
+    var isInsp = role() === 'insp';
+    visualImg.className = 'tower-card__fixed-img ' + (isInsp ? 'tower-card__fixed-img--tower' : 'tower-card__fixed-img--ball');
+    visualImg.alt = '';
+    visualImg.src = isInsp ? 'assets/towerGraphics.png' : 'assets/ball.png';
+    visual.appendChild(visualImg);
     var curMeta = null;
     for (var i = 0; i < metaList.length; i++) if (metaList[i].id === cur) curMeta = metaList[i];
-    document.getElementById('towerCardKicker').textContent = curMeta ? ('שלב ' + (curMeta.final ? 'מסכם' : curMeta.id) + ' מתוך 10') : 'הושלם';
+    document.getElementById('towerCardKicker').textContent = curMeta ? ('שלב ' + (curMeta.final ? 'מסכם' : curMeta.id) + ' מתוך ' + totalSteps) : 'הושלם';
     document.getElementById('towerCardTitle').textContent = curMeta ? curMeta.label : 'כל השלבים הושלמו!';
-    document.getElementById('towerCardMeta').textContent = 'המגדל שלך · ' + floorsDone + '/10 קומות';
-    document.getElementById('towerCardBarFill').style.width = Math.round(floorsDone / 10 * 100) + '%';
+    document.getElementById('towerCardMeta').textContent = (role() === 'insp' ? 'המגדל שלך' : 'הכדור שלך') + ' · ' + floorsDone + '/' + totalSteps + ' שלבים';
+    document.getElementById('towerCardBarFill').style.width = Math.round(floorsDone / totalSteps * 100) + '%';
     var nodesWrap = document.getElementById('homeNodes');
     clearEl(nodesWrap);
     metaList.forEach(function (m) {
       var isDone = done.indexOf(m.id) >= 0;
       var isCur = m.id === cur;
-      var isAvailable = !isDone && !isCur && !!stages[m.id];
+      var isAvailable = !isDone && !isCur && !!stagesMap[m.id];
       var node = cloneTpl('tplStageNode');
       node.classList.toggle('is-done', isDone);
       node.classList.toggle('is-current', isCur);
@@ -536,6 +724,7 @@
   }
 
   function renderDict() {
+    var CATS = curCATS(); var DICT_CHIPS = curDictChips();
     var q = (state.dictQuery || '').trim().toLowerCase();
     var cat = state.dictCat;
     var chipsWrap = document.getElementById('dictChips');
@@ -753,6 +942,7 @@
     ['ctrl', 'insp'].forEach(function (r) {
       var ri = roleInfo[r]; var sel = role() === r;
       var rd = state.roleData[r] || { completed: [] };
+      var rTotal = totalStepsForRole(r);
       var toggle = cloneTpl('tplRoleToggle');
       toggle.setAttribute('data-a', r);
       toggle.classList.toggle('is-active', sel);
@@ -760,14 +950,14 @@
       toggle.style.setProperty('--rt-accent', ri.accent);
       toggle.querySelector('.role-toggle__img').src = ri.idle;
       toggle.querySelector('.role-toggle__name').textContent = ri.he;
-      toggle.querySelector('.role-toggle__meta').textContent = 'שלב ' + Math.min(rd.completed.length + 1, 10) + ' · ' + rd.completed.length + ' הושלמו';
+      toggle.querySelector('.role-toggle__meta').textContent = 'שלב ' + Math.min(rd.completed.length + 1, rTotal) + ' · ' + rd.completed.length + '/' + rTotal + ' הושלמו';
       togglesWrap.appendChild(toggle);
     });
     document.getElementById('soundSwitch').classList.toggle('is-on', state.soundOn);
   }
 
   function renderLesson() {
-    var st = stages[state.stageId];
+    var st = curStagesMap()[state.stageId];
     var ex = st.exercises[state.exIndex];
     var info = roleInfo[role()];
     document.getElementById('lessonProgressFill').style.width = Math.round(state.exIndex / st.exercises.length * 100) + '%';
@@ -793,7 +983,7 @@
     var wrap = document.createElement('div');
     var prompt = document.createElement('div'); prompt.className = 'exercise-mcq__prompt';
     var play = document.createElement('button'); play.className = 'exercise-mcq__play';
-    play.setAttribute('data-act', 'speak'); play.setAttribute('data-speak', ex.en); play.textContent = '🔊';
+    play.setAttribute('data-act', 'speak'); play.setAttribute('data-speak', maskPronunciationAudio(ex.en)); play.textContent = '🔊';
     var en = document.createElement('div'); en.className = 'exercise-mcq__en'; en.textContent = ex.en;
     prompt.appendChild(play); prompt.appendChild(en);
     var optsWrap = document.createElement('div'); optsWrap.className = 'exercise-mcq__opts';
@@ -941,16 +1131,21 @@
       textWrap.appendChild(title);
       if (!ok && (ex.type !== 'listen' || ex.template)) { var corr = document.createElement('div'); corr.className = 'lesson-feedback__correct'; corr.textContent = correctText; textWrap.appendChild(corr); }
       row.appendChild(icon); row.appendChild(textWrap);
-      var tip = document.createElement('div'); tip.className = 'lesson-feedback__tip';
-      var tipIcon = document.createElement('span'); tipIcon.className = 'lesson-feedback__tip-icon'; tipIcon.textContent = '💡';
-      var tipText = document.createElement('span'); tipText.textContent = ex.tip;
-      tip.appendChild(tipIcon); tip.appendChild(tipText);
+      if (ex.tip) {
+        var tip = document.createElement('div'); tip.className = 'lesson-feedback__tip';
+        var tipIcon = document.createElement('span'); tipIcon.className = 'lesson-feedback__tip-icon'; tipIcon.textContent = '💡';
+        var tipText = document.createElement('span'); tipText.textContent = ex.tip;
+        tip.appendChild(tipIcon); tip.appendChild(tipText);
+        footer.appendChild(row); footer.appendChild(tip);
+      } else {
+        footer.appendChild(row);
+      }
       var nextBtn = document.createElement('button');
       nextBtn.className = 'lesson-feedback__next ' + (ok ? 'is-ok' : 'is-no');
       nextBtn.setAttribute('data-act', 'next'); nextBtn.textContent = 'המשך/י';
-      footer.appendChild(row); footer.appendChild(tip); footer.appendChild(nextBtn);
+      footer.appendChild(nextBtn);
     }
-    var exs = stages[state.stageId].exercises;
+    var exs = curStagesMap()[state.stageId].exercises;
     var nav = document.createElement('div'); nav.className = 'lesson-nav';
     var prevBtn = document.createElement('button'); prevBtn.className = 'lesson-nav__btn';
     prevBtn.setAttribute('data-act', 'navPrev'); prevBtn.textContent = '▶ הקודם';
@@ -963,19 +1158,28 @@
   }
 
   function renderComplete() {
+    var stagesMap = curStagesMap();
     var fs = state.finalStats || { xp: 0, acc: 0, time: '0:00', passed: true };
     var passed = fs.passed !== false;
-    var num = stages[state.stageId] ? stages[state.stageId].num : '';
-    var sub = stages[state.stageId] ? stages[state.stageId].title : '';
+    var num = stagesMap[state.stageId] ? stagesMap[state.stageId].num : '';
+    var sub = stagesMap[state.stageId] ? stagesMap[state.stageId].title : '';
     var fd = rdata().completed.length;
     document.getElementById('completeSub').textContent = sub;
     document.getElementById('completeTitle').textContent = passed ? ('שלב ' + num + ' הושלם!') : 'כמעט! נסה/י שוב';
-    var sparks = document.getElementById('completeSparks'); clearEl(sparks);
-    if (passed) { for (var s = 0; s < 3; s++) sparks.appendChild(cloneTpl('tplSpark')); }
-    var towerWrap = document.getElementById('completeTower'); clearEl(towerWrap);
-    towerWrap.appendChild(buildTower(fd, passed));
+
+    var totalSteps = curTotalSteps();
+    var beforeCount = (fs.progressBefore != null) ? fs.progressBefore : Math.max(0, fd - (passed ? 1 : 0));
+    var afterCount = (fs.progressAfter != null) ? fs.progressAfter : fd;
+    var flightWrap = document.getElementById('completeFlightMap');
+    if (flightWrap) {
+      clearEl(flightWrap);
+      flightWrap.appendChild(buildFlightMap(beforeCount, afterCount, totalSteps));
+    }
+
     var msgEl = document.getElementById('completeMsg');
-    msgEl.textContent = passed ? ('קומה ' + fd + ' נבנתה! המגדל גדל 🏗️') : ('צריך 50% לפחות כדי לעבור · קיבלת ' + fs.acc + '%');
+    msgEl.textContent = passed
+      ? (afterCount >= totalSteps ? 'הגעת ליעד הסופי! 🏁 המסלול הושלם' : 'המטוס התקדם צעד נוסף לעבר היעד ✈')
+      : ('צריך 50% לפחות כדי לעבור · קיבלת ' + fs.acc + '%');
     msgEl.className = 'complete__msg ' + (passed ? 'is-passed' : 'is-failed');
     var statsWrap = document.getElementById('completeStats'); clearEl(statsWrap);
     [['XP', '+' + fs.xp, true], ['דיוק', fs.acc + '%', false], ['זמן', fs.time, false]].forEach(function (s) {
